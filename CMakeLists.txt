@@ -18,6 +18,14 @@ INCLUDE( ${QT_USE_FILE} )
 
 FIND_PATH(V3D_BINARY_DIR v3d)
 
+
+IF(NOT LIBRARY_OUTPUT_PATH)
+  SET (LIBRARY_OUTPUT_PATH 
+    ${ITK_V3D_Plugins_BINARY_DIR}/bin
+    CACHE INTERNAL "Output directory for the shared libraries.")
+ENDIF(NOT LIBRARY_OUTPUT_PATH)
+
+
 INCLUDE_DIRECTORIES(
   ${ITK_V3D_Plugins_SOURCE_DIR}/basic_c_fun
   )
