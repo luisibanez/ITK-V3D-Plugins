@@ -12,4 +12,17 @@ a folder outside this folder, say "build", enter it, and run the command
 
 	ccmake ../ITK-V3D-Plugins
 
+Also we added a preference file for storing the ccmake variables such as 
+ITK_DIR and V3D_BINARY_PATH, etc to the file 
+
+	env_variable_pref.txt
+
+Then anyone can use this by calling the command
+
+	cmake -c /path_to/env_variable_pref.txt /path_to_plugin_src
+
+Note that "path_to_plugin_src" in this case should be "../ITK-V3D-Plugins".
+
+If we do this, then we don't need to run manual ccmake again and again!
+
 
