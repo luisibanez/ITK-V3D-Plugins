@@ -6,3 +6,10 @@ This is an Open Source project, distributed under the Apache 2.0 License.
 
 For details, please see the LICENSE file.
 
+<following by by Hanchuan Peng, 2010-06-01>
+When run ccmake, should use this folder as the source root. That is, make
+a folder outside this folder, say "build", enter it, and run the command
+
+	ccmake ../ITK-V3D-Plugins
+
+
