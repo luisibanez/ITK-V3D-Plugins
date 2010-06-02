@@ -88,7 +88,7 @@ template <class T> bool setPluginOutputAndDisplayUsingGlobalSetting(T * pluginou
 {
 	if (!pluginoutputimg1d || sz0<=0 || sz1<=0 || sz2<=0 || sz3<=0 )
 	{
-		v3d_msg("Invalid inputs to setPluginOutputAndDisplayUsingGlobalSetting(). Don't output the plugin results.\n");
+		v3d_msg((char *)("Invalid inputs to setPluginOutputAndDisplayUsingGlobalSetting(). Don't output the plugin results.\n"));
 		return false;
 	}
 	
