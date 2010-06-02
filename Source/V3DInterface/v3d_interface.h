@@ -7,7 +7,7 @@
 * 
 * 2009-Aug-21
 * Last edit: 2010-06-01
-*
+* Last edit: 2010-06-02: add setPluginOutputAndDisplayUsingGlobalSetting()
 ********************************************************************************************************
 */
 
@@ -20,6 +20,7 @@
 #include "basic_surf_objs.h"
 #include "basic_landmark.h"
 #include "v3d_global_preference.h"
+#include "v3d_message.h"
 
 struct V3DPluginArgItem
 {
@@ -83,6 +84,99 @@ public:
 };
 
 
+template <class T> bool setPluginOutputAndDisplayUsingGlobalSetting(T * pluginoutputimg1d, V3DLONG sz0, V3DLONG sz1, V3DLONG sz2, V3DLONG sz3, V3DPluginCallback & callback)
+{
+	if (!pluginoutputimg1d || sz0<=0 || sz1<=0 || sz2<=0 || sz3<=0 )
+	{
+		v3d_msg("Invalid inputs to setPluginOutputAndDisplayUsingGlobalSetting(). Don't output the plugin results.\n");
+		return false;
+	}
+	
+	V3DLONG totalunits = sz0*sz1*sz2*sz3;
+	if (totalunits<=0) 
+	{
+		v3d_msg("Overflow of the *long* data type. Don't output the plugin results.\n");
+		return false;
+	}
+	
+	V3D_GlobalSetting gs = callback.getGlobalSetting();
+	
+	unsigned char * output1d = 0; 
+	V3DLONG i;
+
+	if ( gs.b_plugin_outputImgRescale ) //rescale to [0, 255]
+	{
+		T mm = pluginoutputimg1d[0], MM = pluginoutputimg1d[0];
+		for (i=0; i<totalunits; ++i)
+		{
+			if (pluginoutputimg1d[i]<mm) 
+				mm = pluginoutputimg1d[i];
+			else if (pluginoutputimg1d[i]>MM)
+				MM = pluginoutputimg1d[i];
+		}
+		
+		if ( gs.b_plugin_outputImgConvert2UINT8 || mm==MM ) //if mm=MM, then no need to use float even the origianl data is float
+		{
+			output1d = new unsigned [totalunits];
+			if (mm==MM)
+				for (i=0; i<totalunits; ++i)
+					output1d[i] = 0;
+			else
+			{
+				double w = 255.0/(double(MM)-double(mm));
+				for (i=0; i<totalunits; ++i)
+					output1d[i] = (unsigned char) ((double)pluginoutputimg1d[i] * w);			
+			}	
+		}
+		else //not convert to unsigned char, but to float
+		{
+			float * output1d_float = new float [totalunits];
+			output1d = (unsigned char *)output1d_float;
+
+			double w = 255.0/(double(MM)-double(mm)); //MM must not equal mm now
+			for (i=0; i<totalunits; ++i)
+				output1d_float[i] = (float) ((double)pluginoutputimg1d[i] * w);			
+		}
+	}		
+	else //not rescale to [0, 255]
+	{
+		if ( gs.b_plugin_outputImgConvert2UINT8 )
+		{
+			output1d = new unsigned [totalunits];
+			for (i=0; i<totalunits; ++i)
+				output1d[i] = (unsigned char)(pluginoutputimg1d[i]);			
+		}
+		else //not convert to unsigned char, but to float
+		{
+			float * output1d_float = new float [totalunits];
+			output1d = (unsigned char *)output1d_float;
+			
+			for (i=0; i<totalunits; ++i)
+				output1d_float[i] = (float)(pluginoutputimg1d[i]);			
+		}
+	}
+	
+	//now set up the output window and data
+	
+	Image4DSimple p4DImage;
+	if ( gs.b_plugin_outputImgConvert2UINT8 )
+	{
+		p4DImage.setData(output1d, sz0, sz1, sz2, sz3, V3D_UINT8);
+	}
+	else 
+	{
+		p4DImage.setData(output1d, sz0, sz1, sz2, sz3, V3D_FLOAT32);		
+	}
+
+	v3dhandle mywin = ( gs.b_plugin_dispResInNewWindow ) ? callback.newImageWindow() : callback.currentImageWindow();
+
+	callback.setImage(mywin, &p4DImage);
+	callback.setImageName(mywin, QString("plugin_output_image"));
+	callback.updateImageWindow(mywin);
+	
+	return true;
+}
+
 // obsolete interface for manipulating only one image at a time. 
 class V3DSingleImageInterface
 {
@@ -103,3 +197,4 @@ QT_BEGIN_NAMESPACE
 QT_END_NAMESPACE
 
 #endif /* _V3D_INTERFACE_H_ */
+
