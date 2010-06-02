@@ -17,11 +17,15 @@ ITK_DIR and V3D_BINARY_PATH, etc to the file
 
 	env_variable_pref.txt
 
-Then anyone can use this by calling the command
+Then you need to copy the env_variable_pref.txt file to a *different* location
+(so that you won't change this file incidentally). Now you can run cmake by
+running the command
 
 	cmake -c /path_to/env_variable_pref.txt /path_to_plugin_src
 
 Note that "path_to_plugin_src" in this case should be "../ITK-V3D-Plugins".
+
+
 
 If we do this, then we don't need to run manual ccmake again and again!
 
