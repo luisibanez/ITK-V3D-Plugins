@@ -164,7 +164,7 @@ public:
         }  \
       }  
  
-void dofunc(const QString & func_name,
+void InvertIntensityPlugin::dofunc(const QString & func_name,
 		const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
   // empty by now
