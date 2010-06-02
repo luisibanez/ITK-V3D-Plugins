@@ -17,7 +17,7 @@
 using std::string;
 
 #include "color_xyz.h"
-#include "../basic_c_fun/v3d_basicdatatype.h"
+#include "v3d_basicdatatype.h"
 
 #define VAL_INVALID -9999
 
