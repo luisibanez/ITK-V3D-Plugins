@@ -164,6 +164,13 @@ public:
         }  \
       }  
  
+void dofunc(const QString & func_name,
+		const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
+{
+  // empty by now
+}
+
+
 void InvertIntensityPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
 	v3dhandle curwin = callback.currentImageWindow();
