@@ -30,6 +30,7 @@ IF(NOT LIBRARY_OUTPUT_PATH)
     CACHE INTERNAL "Output directory for the shared libraries.")
 ENDIF(NOT LIBRARY_OUTPUT_PATH)
 
+INCLUDE(${PROJECT_SOURCE_DIR}/CMake/PluginConfiguration.cmake)
 
 ADD_SUBDIRECTORY(Source)
 ADD_SUBDIRECTORY(Testing)
