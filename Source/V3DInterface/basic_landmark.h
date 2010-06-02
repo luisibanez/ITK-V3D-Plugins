@@ -11,10 +11,13 @@
 #ifndef __PT_LOCATION_H__
 #define __PT_LOCATION_H__
 
+#include <time.h>
+
 #include <string>
 using std::string;
 
 #include "color_xyz.h"
+#include "../basic_c_fun/v3d_basicdatatype.h"
 
 #define VAL_INVALID -9999
 
@@ -134,14 +137,14 @@ struct LocationSimple
 
 struct PtIndexAndParents
 {
-	long nodeInd;
-	long nodeParent;
+	V3DLONG nodeInd;
+	V3DLONG nodeParent;
 	PtIndexAndParents()
 	{
 		nodeInd = -1;
 		nodeParent = -1;
 	}
-	PtIndexAndParents(long n, long np)
+	PtIndexAndParents(V3DLONG n, V3DLONG np)
 	{
 		nodeInd = n;
 		nodeParent = np;

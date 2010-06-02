@@ -5,6 +5,7 @@
  * The License Information and User Agreement should be seen at http://penglab.janelia.org/proj/v3d .
  *
  * Last edit. 2009-Aug-21
+ * Last edit. 2010-Jan-19. Move Hanchuan_color_table here
  *
  */
 
@@ -335,6 +336,30 @@ inline RGBA8 random_rgba8(unsigned char a)
 	return cc;
 }
 
+static unsigned char hanchuan_colortable[][3]={
+{255,   0,    0},
+{  0, 255,    0},
+{  0,   0,  255},
+{255, 255,    0},
+{  0, 255,  255},
+{255,   0,  255},
+{255, 128,    0},
+{  0, 255,  128},
+{128,   0,  255},
+{128, 255,    0},
+{  0, 128,  255},
+{255,   0,  128},
+{128,   0,    0},
+{  0, 128,    0},
+{  0,   0,  128},
+{128, 128,    0},
+{  0, 128,  128},
+{128,   0,  128},
+{255, 128,  128},
+{128, 255,  128},
+{128, 128,  255},
+};
+inline int hanchuan_colortable_size() {return sizeof(hanchuan_colortable)/3;}
 
 ////////////////////////////////////////////////////////////////////
 

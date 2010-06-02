@@ -8,6 +8,8 @@
  * The License Information and User Agreement should be seen at http://penglab.janelia.org/proj/v3d .
  *
  * Last edit: 2009-Aug-21
+ * Last edit: 2010-May-19: replace long with V3DLONG
+ * Last edit: 2010-May-30: add the value_at() function for Image4DProxy class
  *
  *******************************************************************************************
  */
@@ -15,32 +17,18 @@
 #ifndef _BASIC_4DIMAGE_H_
 #define _BASIC_4DIMAGE_H_
 
-// be compatible with LP64(unix64) and LLP64(win64)
-typedef unsigned char        uint8;
-typedef unsigned short       uint16;
-typedef unsigned int         uint32;
-typedef unsigned long long   uint64;
-typedef          char        sint8;
-typedef          short       sint16;
-typedef          int         sint32;
-typedef          long long   sint64;
-typedef          float       float32;
-typedef          double      float64;
-
-
-enum ImagePixelType {V3D_UNKNOWN, V3D_UINT8, V3D_UINT16, V3D_FLOAT32};
-enum TimePackType {TIME_PACK_NONE,TIME_PACK_Z,TIME_PACK_C}; 
+#include "v3d_basicdatatype.h"
 
 class Image4DSimple
 {
 	//the data members are set as public, but should avoid using them directly
 public:
 	unsigned char * data1d;
-	long sz0, sz1, sz2, sz3;  // number of sz3 color channel.
-	long sz_time;  // number of time points
+	V3DLONG sz0, sz1, sz2, sz3;
+	V3DLONG sz_time;
 	TimePackType timepacktype;
 	ImagePixelType datatype;
-	char imgSrcFile[1024]; //use a long path to store the full path
+	char imgSrcFile[1024]; //use a V3DLONG path to store the full path
 	int b_error;
 
 public:
@@ -69,17 +57,17 @@ public:
 
 	//main interface to the data
 	unsigned char * getRawData() {return data1d;}
-	long getXDim() {return sz0;}
-	long getYDim() {return sz1;}
-	long getZDim() {return sz2;}
-	long getCDim() {return sz3;}
-	long getTDim() {return sz_time;}
+	V3DLONG getXDim() {return sz0;}
+	V3DLONG getYDim() {return sz1;}
+	V3DLONG getZDim() {return sz2;}
+	V3DLONG getCDim() {return sz3;}
+	V3DLONG getTDim() {return sz_time;}
 	ImagePixelType getDatatype() {return datatype;}
 	TimePackType getTimePackType() {return timepacktype;}
-	long getTotalUnitNumber() {return sz0*sz1*sz2*sz3;}
-	long getTotalUnitNumberPerPlane() {return sz0*sz1;}
-	long getTotalUnitNumberPerChannel() {return sz0*sz1*sz2;}
-	long getUnitBytes()
+	V3DLONG getTotalUnitNumber() {return sz0*sz1*sz2*sz3;}
+	V3DLONG getTotalUnitNumberPerPlane() {return sz0*sz1;}
+	V3DLONG getTotalUnitNumberPerChannel() {return sz0*sz1*sz2;}
+	V3DLONG getUnitBytes()
 	{
 		switch (datatype)
 		{
@@ -89,20 +77,20 @@ public:
 			default: return 1;
 		}
 	}
-	long getTotalBytes() {return getUnitBytes()*sz0*sz1*sz2*sz3;}
+	V3DLONG getTotalBytes() {return getUnitBytes()*sz0*sz1*sz2*sz3;}
 	int isSuccess() {if (sz0<=0 || sz1<=0 || sz2<=0 || sz3<=0) b_error=1; return !b_error;}
 
-	void setXDim(long v) {sz0=v;}
-	void setYDim(long v) {sz1=v;}
-	void setZDim(long v) {sz2=v;}
-	void setCDim(long v) {sz3=v;}
-	void setTDim(long v) {sz_time=v;}
+	void setXDim(V3DLONG v) {sz0=v;}
+	void setYDim(V3DLONG v) {sz1=v;}
+	void setZDim(V3DLONG v) {sz2=v;}
+	void setCDim(V3DLONG v) {sz3=v;}
+	void setTDim(V3DLONG v) {sz_time=v;}
 	void setDatatype(ImagePixelType v) {datatype=v;}
 	void setTimePackType(TimePackType v) {timepacktype=v;}
 	bool setNewRawDataPointer(unsigned char *p) {if (!p) return false; if (data1d) delete []data1d; data1d = p; return true;}
 
 	//this function is the main place to call if you want to set your own 1d pointer data to this data structure
-	bool setData(unsigned char *p, long s0, long s1, long s2, long s3, ImagePixelType dt)
+	bool setData(unsigned char *p, V3DLONG s0, V3DLONG s1, V3DLONG s2, V3DLONG s3, ImagePixelType dt)
 	{
 		if (p && s0>0 && s1>0 && s2>0 && s3>0 && (dt==V3D_UINT8 || dt==V3D_UINT16 || dt==V3D_FLOAT32))
 			if (setNewRawDataPointer(p))
@@ -120,8 +108,8 @@ public:
 	bool setFileName(char * myfile)
 	{
 		if (!myfile) return false;
-		long clen=1023;
-		long i;
+		V3DLONG clen=1023;
+		V3DLONG i;
 		for (i=0;i<clen;i++)
 		{
 			if (myfile[i]!='\0') imgSrcFile[i] = myfile[i];
@@ -136,21 +124,23 @@ public:
 	//Normally for the plugin interfaces you don't need to call the following functions
 	void loadImage(char filename[]);
 	bool saveImage(const char filename[]);
-	bool createImage(long mysz0, long mysz1, long mysz2, long mysz3, ImagePixelType mytype);
-	void createBlankImage(long imgsz0, long imgsz1, long imgsz2, long imgsz3, int imgdatatype);
+	bool createImage(V3DLONG mysz0, V3DLONG mysz1, V3DLONG mysz2, V3DLONG mysz3, ImagePixelType mytype);
+	void createBlankImage(V3DLONG imgsz0, V3DLONG imgsz1, V3DLONG imgsz2, V3DLONG imgsz3, int imgdatatype);
 
 };
 
-bool convert_data_to_8bit(void * &img, long * sz, int datatype);
+bool convert_data_to_8bit(void * &img, V3DLONG * sz, int datatype);
 
 template<class T> class Image4DProxy
 {
 public:
+	T *img0;
 	uint8* data_p;
-	long nbytes, su, sx, sy, sz, sc;
-	long stride_x, stride_y, stride_z, stride_c;
+	V3DLONG nbytes, su, sx, sy, sz, sc;
+	V3DLONG stride_x, stride_y, stride_z, stride_c;
 	Image4DProxy(T *img)
 	{
+		img0 = img; //keep a copy for future accessing of the data
 		data_p = img->getRawData();
 		nbytes = img->getTotalBytes();
 		su = img->getUnitBytes();
@@ -163,7 +153,7 @@ public:
 		stride_z = su*sx*sy;
 		stride_c = su*sx*sy*sz;
 	}
-	inline uint8* at(long x, long y, long z, long c)
+	inline uint8* at(V3DLONG x, V3DLONG y, V3DLONG z, V3DLONG c)
 	{
 		return (data_p + stride_x*x + stride_y*y + stride_z*z + stride_c*c);
 	}
@@ -175,28 +165,40 @@ public:
 	{
 		return (data_p + nbytes-1);
 	}
-	inline bool is_inner(long x, long y, long z, long c)
+	inline bool is_inner(V3DLONG x, V3DLONG y, V3DLONG z, V3DLONG c)
 	{
 		return !(x<0 || x>=sx || y<0 || y>=sy || z<0 || z>=sz || c<0 || c>=sc);
 	}
-	inline uint8* at_uint8(long x, long y, long z, long c)
+	inline uint8* at_uint8(V3DLONG x, V3DLONG y, V3DLONG z, V3DLONG c)
 	{
 		return (uint8*)at(x,y,z,c);
 	}
-	inline uint16* at_uint16(long x, long y, long z, long c)
+	inline uint16* at_uint16(V3DLONG x, V3DLONG y, V3DLONG z, V3DLONG c)
 	{
 		return (uint16*)at(x,y,z,c);
 	}
-	inline float32* at_float32(long x, long y, long z, long c)
+	inline float32* at_float32(V3DLONG x, V3DLONG y, V3DLONG z, V3DLONG c)
 	{
 		return (float32*)at(x,y,z,c);
 	}
+	inline double value_at(V3DLONG x, V3DLONG y, V3DLONG z, V3DLONG c)
+	{
+		double v;
+		switch (su)
+		{
+			case 1: v = (double)(*at(x,y,z,c)); break;
+			case 2: v = (double)(*(uint16 *)at(x,y,z,c)); break;
+			case 4: v = (double)(*(float32 *)at(x,y,z,c)); break;
+			default: v = (double)(*at(x,y,z,c)); break;
+		}
+		return v;
+	}
 };
 #define Image4DProxy_foreach(p, x,y,z,c) \
-for (long c = 0; c < p.sc; c++) \
-for (long z = 0; z < p.sz; z++) \
-for (long y = 0; y < p.sy; y++) \
-for (long x = 0; x < p.sx; x++)
+for (V3DLONG c = 0; c < p.sc; c++) \
+for (V3DLONG z = 0; z < p.sz; z++) \
+for (V3DLONG y = 0; y < p.sy; y++) \
+for (V3DLONG x = 0; x < p.sx; x++)
 
 
 #endif /* _BASIC_4DIMAGE_H_ */
