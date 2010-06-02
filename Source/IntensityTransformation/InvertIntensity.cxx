@@ -26,6 +26,12 @@ QStringList InvertIntensityPlugin::menulist() const
 						<< QObject::tr("about this plugin");
 }
 
+QStringList InvertIntensityPlugin::funclist() const
+{
+    return QStringList();
+}
+
+
 template <typename TPixelType>
 class InvertIntensitySpecializaed
 {
