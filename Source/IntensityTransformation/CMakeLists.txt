@@ -1,0 +1,4 @@
+
+CONFIGURE_V3D_PLUGIN(IntensityTransformations InvertIntensity)
+CONFIGURE_V3D_PLUGIN(IntensityTransformations Sigmoid)
+
