@@ -5,7 +5,8 @@
 * Copyright: Hanchuan Peng (Howard Hughes Medical Institute, Janelia Farm Research Campus).
 * The License Information and User Agreement should be seen at http://penglab.janelia.org/proj/v3d .
 * 
-* Last edit: 2009-Aug-21
+* 2009-Aug-21
+* Last edit: 2010-06-01
 *
 ********************************************************************************************************
 */
@@ -16,9 +17,9 @@
 #include <QtCore>
 
 #include "basic_4dimage.h"
-//#include "basic_surf_objs.h"
+#include "basic_surf_objs.h"
 #include "basic_landmark.h"
-
+#include "v3d_global_preference.h"
 
 struct V3DPluginArgItem
 {
@@ -60,6 +61,11 @@ public:
 	virtual ROIList getROI(v3dhandle image_window) = 0;
 	virtual bool setROI(v3dhandle image_window, ROIList & roi_list) = 0;
 
+	virtual NeuronTree getSWC(v3dhandle image_window) = 0;
+	virtual bool setSWC(v3dhandle image_window, NeuronTree & nt) = 0;
+	
+	virtual V3D_GlobalSetting getGlobalSetting() = 0;
+	virtual bool setGlobalSetting( V3D_GlobalSetting & gs ) = 0;
 };
 
 //this is the major V3D plugin interface, and will be enhanced continuously
