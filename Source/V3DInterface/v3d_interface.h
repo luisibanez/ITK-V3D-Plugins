@@ -117,7 +117,7 @@ template <class T> bool setPluginOutputAndDisplayUsingGlobalSetting(T * pluginou
 		
 		if ( gs.b_plugin_outputImgConvert2UINT8 || mm==MM ) //if mm=MM, then no need to use float even the origianl data is float
 		{
-			output1d = new unsigned [totalunits];
+			output1d = new unsigned char [totalunits];
 			if (mm==MM)
 				for (i=0; i<totalunits; ++i)
 					output1d[i] = 0;
@@ -142,7 +142,7 @@ template <class T> bool setPluginOutputAndDisplayUsingGlobalSetting(T * pluginou
 	{
 		if ( gs.b_plugin_outputImgConvert2UINT8 )
 		{
-			output1d = new unsigned [totalunits];
+			output1d = new unsigned char [totalunits];
 			for (i=0; i<totalunits; ++i)
 				output1d[i] = (unsigned char)(pluginoutputimg1d[i]);			
 		}
