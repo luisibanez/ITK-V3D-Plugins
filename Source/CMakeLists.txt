@@ -1,5 +1,6 @@
 INCLUDE_DIRECTORIES( V3DInterface )
 
+ADD_SUBDIRECTORY(V3DInterface)
 ADD_SUBDIRECTORY(InvertIntensity)
 # ADD_SUBDIRECTORY(ConnectedComponents)
 ADD_SUBDIRECTORY(IntensityTransformation)
