@@ -40,6 +40,8 @@ struct V3D_GlobalSetting
 	int iChannel_for_plugin; //-1 for all channels, and 0, 1,2, ... for valid image color channel for plugin-based image processing
 	bool b_plugin_dispResInNewWindow; //if display the plugin-based image processing result in a new window (otherwise re-use in the existing window)
 	bool b_plugin_dispParameterDialog; //if display a dialog to ask a user to supply a plugin's parameters (e.g. image processing parameters)
+	bool b_plugin_outputImgRescale; //if rescale the output of plugin's processing result between [0, 255]
+	bool b_plugin_outputImgConvert2UINT8; //if yes then convert a plugin's output to UINT8 type (rounding to it in most cases); if no, then keep as float (32bit)
 
 	//default preferences
 	V3D_GlobalSetting()
@@ -76,6 +78,8 @@ struct V3D_GlobalSetting
 		iChannel_for_plugin = -1; //-1 for all channels, and 0, 1,2, ... for valid image color channel for plugin-based image processing
 		b_plugin_dispResInNewWindow = true; //if display the plugin-based image processing result in a new window (otherwise re-use in the existing window)
 		b_plugin_dispParameterDialog = true; //if display a dialog to ask a user to supply a plugin's parameters (e.g. image processing parameters)
+		b_plugin_outputImgRescale = false; //if rescale the output of plugin's processing result between [0, 255]
+		b_plugin_outputImgConvert2UINT8 = true; // if yes then convert a plugin's output to UINT8 type (rounding to it in most cases); if no, then keep as float (32bit)
 	}
 };
 
