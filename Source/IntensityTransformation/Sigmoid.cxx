@@ -7,27 +7,27 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "InvertIntensity.h"
+#include "Sigmoid.h"
 
 // ITK Header Files
-#include "itkInvertIntensityImageFilter.h"
+#include "itkSigmoidImageFilter.h"
 #include "itkImportImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(InvertIntensity, InvertIntensityPlugin)
+Q_EXPORT_PLUGIN2(Sigmoid, SigmoidPlugin)
 
 
-QStringList InvertIntensityPlugin::menulist() const
+QStringList SigmoidPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK Invert Intensity")
+    return QStringList() << QObject::tr("ITK Sigmoid")
 						<< QObject::tr("about this plugin");
 }
 
 template <typename TPixelType>
-class InvertIntensitySpecializaed
+class SigmoidSpecializaed
 {
 public:
   void Execute(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
@@ -82,8 +82,8 @@ public:
     const bool importImageFilterWillOwnTheBuffer = false;
     importFilter->SetImportPointer( data1d, numberOfPixels, importImageFilterWillOwnTheBuffer );
 
-    typedef itk::InvertIntensityImageFilter< ImageType, ImageType > InvertFilterType;
-    typename InvertFilterType::Pointer invertFilter = InvertFilterType::New();
+    typedef itk::SigmoidImageFilter< ImageType, ImageType > FilterType;
+    typename FilterType::Pointer invertFilter = FilterType::New();
 
     invertFilter->SetInput( importFilter->GetOutput() );
 
@@ -95,9 +95,9 @@ public:
     
     //input
     //update the pixel value
-    if(arg == QObject::tr("ITK Invert Intensity"))
+    if(arg == QObject::tr("ITK Sigmoid"))
       {
-      InvertIntensityDialog d(p4DImage, parent);
+      SigmoidDialog d(p4DImage, parent);
       
       if (d.exec()!=QDialog::Accepted)
         {
@@ -111,7 +111,7 @@ public:
       }
     else if (arg == QObject::tr("about this plugin"))
       {
-      QMessageBox::information(parent, "Version info", "ITK Invert Intensity 1.0 (2010-May-12): this plugin is developed by Luis Ibanez.");
+      QMessageBox::information(parent, "Version info", "ITK Sigmoid 1.0 (2010-June-2): this plugin is developed by Luis Ibanez.");
       }
     else
       {
@@ -124,7 +124,7 @@ public:
 #define EXECUTE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
-    InvertIntensitySpecializaed< c_pixel_type > runner; \
+    SigmoidSpecializaed< c_pixel_type > runner; \
     runner.Execute( arg, p4DImage, parent ); \
     break; \
     } 
@@ -142,7 +142,7 @@ public:
         }  \
       }  
  
-void InvertIntensityPlugin::processImage(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
+void SigmoidPlugin::processImage(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
 {
    EXECUTE_ALL_PIXEL_TYPES; 
 }
