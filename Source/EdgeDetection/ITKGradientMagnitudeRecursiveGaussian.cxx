@@ -13,26 +13,46 @@
 #include "itkImage.h"
 #include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
 #include "itkImportImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkImageFileWriter.h"
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
 Q_EXPORT_PLUGIN2(ITKGradientMagnitudeRecursiveGaussian, ITKGradientPlugin)
 
+void itkGradientPlugin(V3DPluginCallback &callback, QWidget *parent);
+
+//plugin funcs
+const QString title = "ITK GradientMagnitudeRecursiveGaussian";
 QStringList ITKGradientPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK GradientMagnitudeRecursiveGaussian")
+	return QStringList() << QObject::tr("ITK GradientMagnitudeRecursiveGaussian")
 						 << QObject::tr("about this plugin");
 }
+
+void ITKGradientPlugin::domenu(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
+{
+    if (menu_name == QObject::tr("ITK GradientMagnitudeRecursiveGaussian"))
+    {
+    	itkGradientPlugin(callback, parent);
+    }
+	else if (menu_name == QObject::tr("about this plugin"))
+	{
+		QMessageBox::information(parent, "Version info", "ITK Gradient Magnitude Recursive Gaussian 1.0 (2010-June-02): this plugin is developed by Yang Yu.");
+	}
+}
+
 
 template <typename TInputPixelType, typename TOutputPixelType>
 class ITKGradientSpecializaed
 {
 public:
-	void Execute( const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
+	void Execute(V3DPluginCallback &callback, QWidget *parent)
 	{
+		v3dhandle curwin = callback.currentImageWindow();
+		
+		V3D_GlobalSetting globalSetting = callback.getGlobalSetting();
+		Image4DSimple *p4DImage = callback.getImage(curwin);
+
 		typedef TInputPixelType  PixelType;
 		
 		PixelType * data1d = reinterpret_cast< PixelType * >( p4DImage->getRawData() );
@@ -43,7 +63,18 @@ public:
 		long nx = p4DImage->getXDim();
 		long ny = p4DImage->getYDim();
 		long nz = p4DImage->getZDim();
-		// long sc = p4DImage->getCDim();  // Number of channels
+		long nc = p4DImage->getCDim();  // Number of channels
+		
+		int channelToFilter = globalSetting.iChannel_for_plugin;
+		
+		if( channelToFilter >= nc )
+		{
+			v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
+			return;
+		}
+		
+		long pagesz = nz*ny*nx;
+		long offsets = channelToFilter*pagesz;
 		
 		const unsigned int Dimension = 3;
 		
@@ -80,89 +111,95 @@ public:
 		
 		importFilter->SetSpacing( spacing );
 		
-		
 		const bool importImageFilterWillOwnTheBuffer = false;
-		importFilter->SetImportPointer( data1d, numberOfPixels, importImageFilterWillOwnTheBuffer );
 		
 		typedef itk::GradientMagnitudeRecursiveGaussianImageFilter<InputImageType, OutputImageType> GradientType;
 		typename GradientType::Pointer gradientFilter = GradientType::New();
 		
-		gradientFilter->SetInput( importFilter->GetOutput() );
-		//gradientFilter->InPlaceOn(); // Reuse the buffer
-		
-		//rescaleFilter->SetInput( importFilter->GetOutput() );
-		//gradientFilter->SetInput( rescaleFilter->GetOutput() );
-		//gradientFilter->InPlaceOn();
-		
-		try
-		{
-			gradientFilter->Update();
-		}
-		catch( itk::ExceptionObject & excp)
-		{
-			std::cerr << "Error run this filter." << std::endl;
-			std::cerr << excp << std::endl;
-			return;
-		}
-		
-		// output
-		typedef itk::RescaleIntensityImageFilter<OutputImageType, InputImageType > RescaleFilterType;
-		typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
-		rescaleFilter->SetInput( gradientFilter->GetOutput() );
-		
-		typedef itk::ImageFileWriter< InputImageType >  WriterType;
-		
-		typename WriterType::Pointer writer = WriterType::New();
-		writer->SetFileName("../../../output.tif");
-		writer->SetInput(rescaleFilter->GetOutput());
-		try
-		{
-			writer->Update();
-		}
-		catch( itk::ExceptionObject & excp)
-		{
-			std::cerr << "Error run this filter." << std::endl;
-			std::cerr << excp << std::endl;
-			return;
-		}
-		
-		
-//		typename OutputImageType::PixelContainer * container;
-//		
-//		container =gradientFilter->GetOutput()->GetPixelContainer();
-//		container->SetContainerManageMemory( false );
-//		
-//		PixelType * output1d = container->GetImportPointer();
-		
-		
-		//define datatype here
-		//
 		
 		//input
-		//update the pixel value
-		if(arg == QObject::tr("ITK "))
+		ITKGradientDialog d(callback, parent);
+		
+		if (d.exec()!=QDialog::Accepted)
 		{
-			ITKGradientDialog d(p4DImage, parent);
-			
-			if (d.exec()!=QDialog::Accepted)
-			{
-				return;
-			}
-			else
-			{
-				gradientFilter->Update();
-			}
-			
-		}
-		else if (arg == QObject::tr("about this plugin"))
-		{
-			QMessageBox::information(parent, "Version info", "ITK Gradient Magnitude Recursive Gaussian 1.0 (2010-June-02): this plugin is developed by Yang Yu.");
+			return;
 		}
 		else
 		{
-			return;
+			//consider multiple channels
+			if(channelToFilter==-1)
+			{
+				TOutputPixelType *output1d;
+				try
+				{
+					output1d = new TOutputPixelType [numberOfPixels];
+				}
+				catch(...)
+				{
+					std::cerr << "Error memroy allocating." << std::endl;
+					return;
+				}
+				
+				const bool filterWillDeleteTheInputBuffer = false;
+				
+				for(long ch=0; ch<nc; ch++)
+				{
+					offsets = ch*pagesz;
+					
+					TOutputPixelType *p = output1d+offsets;
+					
+					importFilter->SetImportPointer( data1d+offsets, pagesz, importImageFilterWillOwnTheBuffer );
+					gradientFilter->SetInput( importFilter->GetOutput() );
+					
+					gradientFilter->GetOutput()->GetPixelContainer()->SetImportPointer( p, pagesz, filterWillDeleteTheInputBuffer);
+					
+					try
+					{
+						gradientFilter->Update();
+					}
+					catch( itk::ExceptionObject & excp)
+					{
+						std::cerr << "Error run this filter." << std::endl;
+						std::cerr << excp << std::endl;
+						return;
+					}
+
+				}
+				
+				setPluginOutputAndDisplayUsingGlobalSetting(output1d, nx, ny, nz, nc, callback);
+			}
+			else if(channelToFilter<nc)
+			{
+				importFilter->SetImportPointer( data1d+offsets, pagesz, importImageFilterWillOwnTheBuffer );
+				gradientFilter->SetInput( importFilter->GetOutput() );
+				
+				try
+				{
+					gradientFilter->Update();
+				}
+				catch( itk::ExceptionObject & excp)
+				{
+					std::cerr << "Error run this filter." << std::endl;
+					std::cerr << excp << std::endl;
+					return;
+				}
+				
+				// output
+				typename OutputImageType::PixelContainer * container;
+				
+				container =gradientFilter->GetOutput()->GetPixelContainer();
+				container->SetContainerManageMemory( false );
+				
+				typedef TOutputPixelType OutputPixelType;
+				OutputPixelType * output1d = container->GetImportPointer();
+				
+				setPluginOutputAndDisplayUsingGlobalSetting(output1d, nx, ny, nz, 1, callback);
+			}
+			
+			
 		}
-	}
+		
+	}	
 	
 };
 
@@ -170,7 +207,7 @@ public:
 	case v3d_pixel_type: \
 	{ \
 		ITKGradientSpecializaed< input_pixel_type, output_pixel_type > runner; \
-		runner.Execute( arg, p4DImage, parent ); \
+		runner.Execute( callback, parent ); \
 		break; \
 	} 
 
@@ -187,16 +224,17 @@ public:
 		}  \
 	}  
 
-void ITKGradientPlugin::processImage(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
+
+void itkGradientPlugin(V3DPluginCallback &callback, QWidget *parent)
 {
-	EXECUTE_ALL_PIXEL_TYPES; 
-//	
-//	Image4DSimple p4DImage;
-//	p4DImage.setData((unsigned char*)output1d, nx, ny, nz, 1, V3D_FLOAT32);
-//	
-//	v3dhandle newwin = callback.newImageWindow();
-//	callback.setImage(newwin, &p4DImage);
-//	callback.setImageName(newwin, QString("Gradient Image"));
-//	callback.updateImageWindow(newwin);
+	Image4DSimple* p4DImage = callback.getImage(callback.currentImageWindow());
+	if (!p4DImage)
+    {
+		v3d_msg(QObject::tr("You don't have any image open in the main window."));
+		return;
+    }
+	
+	EXECUTE_ALL_PIXEL_TYPES;
 }
+
 
