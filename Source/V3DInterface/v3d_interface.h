@@ -135,7 +135,7 @@ template <class T> bool setPluginOutputAndDisplayUsingGlobalSetting(T * pluginou
 
 			double w = 255.0/(double(MM)-double(mm)); //MM must not equal mm now
 			for (i=0; i<totalunits; ++i)
-				output1d_float[i] = (float) ((double)pluginoutputimg1d[i] * w);			
+				output1d_float[i] = (float) (((double)pluginoutputimg1d[i]-double(mm)) * w);			
 		}
 	}		
 	else //not rescale to [0, 255]
