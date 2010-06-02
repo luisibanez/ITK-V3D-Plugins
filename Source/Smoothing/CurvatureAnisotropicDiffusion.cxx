@@ -29,9 +29,19 @@ template<typename TPixelType>
 class ITKCurvatureAnisotropicDiffusionSpecializaed
 {
 public:
-	void Execute(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
+	void Execute(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
 	{
+		v3dhandle oldwin = callback.currentImageWindow();
+		Image4DSimple* p4DImage = callback.getImage(oldwin);
+		V3D_GlobalSetting globalSetting = callback.getGlobalSetting();
+
 		const unsigned int Dimension = 3;
+	    int channelToFilter = globalSetting.iChannel_for_plugin;
+	    if( channelToFilter >= p4DImage->getCDim() )
+	      {
+	      v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
+	      return;
+	      }
 
 		//------------------------------------------------------------------
 		//import image from V3D
@@ -111,7 +121,7 @@ public:
 
 		//------------------------------------------------------------------
 		//update the pixel value
-		if (arg == QObject::tr("ITK CurvatureAnisotropicDiffusion Filter ..."))
+		if (menu_name == QObject::tr("ITK CurvatureAnisotropicDiffusion Filter ..."))
 		{
 			ITKCurvatureAnisotropicDiffusionDialog d(p4DImage, parent);
 
@@ -139,15 +149,44 @@ public:
 		}
 
 		//------------------------------------------------------------------
-		//copy data back to V3D
 		typedef itk::ImageRegionConstIterator<ImageType_input> IteratorType;
 		IteratorType it(rescaler_32f_8u->GetOutput(), rescaler_32f_8u->GetOutput()->GetRequestedRegion());
 		it.GoToBegin();
-		while(!it.IsAtEnd())
+
+		if(!globalSetting.b_plugin_dispResInNewWindow)
 		{
-			*data1d=it.Get();
-			++it;
-			++data1d;
+			printf("display results in a new window\n");
+			//copy data back to V3D
+			while(!it.IsAtEnd())
+			{
+				*data1d=it.Get();
+				++it;
+				++data1d;
+			}
+
+			callback.setImageName(oldwin, callback.getImageName(oldwin)+"_new");
+			callback.updateImageWindow(oldwin);
+		}
+		else
+		{
+			printf("display results in current window\n");
+			long N = p4DImage->getTotalBytes();
+			unsigned char* newdata1d = new unsigned char[N];
+			Image4DSimple tmp;
+			tmp.setData(newdata1d, p4DImage->sz0,p4DImage->sz1,p4DImage->sz2,p4DImage->sz3, p4DImage->datatype);
+
+			//copy data back to the new image
+			while(!it.IsAtEnd())
+			{
+				*newdata1d=it.Get();
+				++it;
+				++newdata1d;
+			}
+
+			v3dhandle newwin = callback.newImageWindow();
+			callback.setImage(newwin, &tmp);
+			callback.setImageName(newwin, callback.getImageName(oldwin)+"_new");
+		    callback.updateImageWindow(newwin);
 		}
 	}
 
@@ -157,11 +196,12 @@ public:
   case v3d_pixel_type: \
     { \
 	  ITKCurvatureAnisotropicDiffusionSpecializaed< c_pixel_type > runner; \
-    runner.Execute( arg, p4DImage, parent ); \
+    runner.Execute(  menu_name, callback, parent ); \
     break; \
-    } 
+    }
 
 #define EXECUTE_ALL_PIXEL_TYPES \
+	Image4DSimple *p4DImage = callback.getImage(curwin); \
     if (! p4DImage) return; \
     ImagePixelType pixelType = p4DImage->getDatatype(); \
     switch( pixelType )  \
@@ -172,10 +212,17 @@ public:
       case V3D_UNKNOWN:  \
         {  \
         }  \
-      }  
+      }
 
-void ITKCurvatureAnisotropicDiffusionPlugin::processImage(const QString &arg,
-		Image4DSimple *p4DImage, QWidget *parent)
+void ITKCurvatureAnisotropicDiffusionPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
-	EXECUTE_ALL_PIXEL_TYPES;
+	v3dhandle curwin = callback.currentImageWindow();
+	if (!curwin)
+    {
+		v3d_msg(tr("You don't have any image open in the main window."));
+		return;
+    }
+
+  EXECUTE_ALL_PIXEL_TYPES;
 }
+

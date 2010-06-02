@@ -1,4 +1,5 @@
 
-
 CONFIGURE_V3D_PLUGIN(Smoothing GradientAnisotropicDiffusion)
-
+CONFIGURE_V3D_PLUGIN(Smoothing CurvatureAnisotropicDiffusion)
+CONFIGURE_V3D_PLUGIN(Smoothing MinMaxCurvatureFlow)
+CONFIGURE_V3D_PLUGIN(Smoothing BilateralFilter)
