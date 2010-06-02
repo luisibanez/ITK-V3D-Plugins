@@ -1,7 +1,3 @@
-/* updatepxlvalplugin.cpp
- * 2010-05-12: create this program by Luis Ibanez
- */
-
 #include <QtGui>
 
 #include <math.h>
@@ -104,11 +100,11 @@ public:
     importFilter->SetImportPointer( data1d, numberOfPixels, importImageFilterWillOwnTheBuffer );
 
     typedef itk::InvertIntensityImageFilter< ImageType, ImageType > InvertFilterType;
-    typename InvertFilterType::Pointer invertFilter = InvertFilterType::New();
+    typename InvertFilterType::Pointer filter = InvertFilterType::New();
 
-    invertFilter->SetInput( importFilter->GetOutput() );
+    filter->SetInput( importFilter->GetOutput() );
 
-    invertFilter->InPlaceOn(); // Reuse the buffer
+    filter->InPlaceOn(); // Reuse the buffer
 
 
     //define datatype here
@@ -126,7 +122,7 @@ public:
         }
       else
         {
-        invertFilter->Update();
+        filter->Update();
         }
       
       }

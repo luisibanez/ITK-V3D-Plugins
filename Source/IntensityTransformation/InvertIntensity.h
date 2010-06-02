@@ -1,13 +1,6 @@
-/* InvertIntensity.h
- * 2010-05-12: create this program by Luis Ibanez
- */
-
-
 #ifndef __InvertIntensity_H__
 #define __InvertIntensity_H__
 
-//   Invert the image intensity.
-//
 
 #include <QtGui>
 #include <stdio.h>
@@ -51,7 +44,7 @@ public:
 		
 	  gridLayout->addWidget(cancel, 0,0); gridLayout->addWidget(ok, 0,1);
 		setLayout(gridLayout);
-		setWindowTitle(QString("Invert Intensity"));
+		setWindowTitle(QString("InvertIntensity"));
 		
 		connect(ok,     SIGNAL(clicked()), this, SLOT(accept()));
 		connect(cancel, SIGNAL(clicked()), this, SLOT(reject()));

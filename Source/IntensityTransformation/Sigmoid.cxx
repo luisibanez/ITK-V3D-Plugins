@@ -1,7 +1,3 @@
-/* updatepxlvalplugin.cpp
- * 2010-05-12: create this program by Luis Ibanez
- */
-
 #include <QtGui>
 
 #include <math.h>
@@ -22,17 +18,28 @@ Q_EXPORT_PLUGIN2(Sigmoid, SigmoidPlugin)
 
 QStringList SigmoidPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK Sigmoid")
+    return QStringList() << QObject::tr("ITK Invert Intensity")
 						<< QObject::tr("about this plugin");
 }
+
+QStringList SigmoidPlugin::funclist() const
+{
+    return QStringList();
+}
+
 
 template <typename TPixelType>
 class SigmoidSpecializaed
 {
 public:
-  void Execute(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
+  void Execute(const QString &menu_name,  V3DPluginCallback & callback, QWidget *parent)
     {
     typedef TPixelType  PixelType;
+
+    v3dhandle curwin = callback.currentImageWindow();
+	
+    V3D_GlobalSetting globalSetting = callback.getGlobalSetting();
+    Image4DSimple *p4DImage = callback.getImage(curwin);
 
     PixelType * data1d = reinterpret_cast< PixelType * >( p4DImage->getRawData() );
     unsigned long int numberOfPixels = p4DImage->getTotalBytes();
@@ -42,8 +49,18 @@ public:
     long nx = p4DImage->getXDim();
     long ny = p4DImage->getYDim();
     long nz = p4DImage->getZDim();
-    // long sc = p4DImage->getCDim();  // Number of channels
+    long sc = p4DImage->getCDim();  // Number of channels
   
+
+    int channelToFilter = globalSetting.iChannel_for_plugin;
+
+    if( channelToFilter >= sc )
+      {
+      v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
+      return;
+      }
+
+
     const unsigned int Dimension = 3;
 	
     typedef itk::Image< PixelType, Dimension > ImageType;
@@ -82,12 +99,12 @@ public:
     const bool importImageFilterWillOwnTheBuffer = false;
     importFilter->SetImportPointer( data1d, numberOfPixels, importImageFilterWillOwnTheBuffer );
 
-    typedef itk::SigmoidImageFilter< ImageType, ImageType > FilterType;
-    typename FilterType::Pointer invertFilter = FilterType::New();
+    typedef itk::SigmoidImageFilter< ImageType, ImageType > InvertFilterType;
+    typename InvertFilterType::Pointer filter = InvertFilterType::New();
 
-    invertFilter->SetInput( importFilter->GetOutput() );
+    filter->SetInput( importFilter->GetOutput() );
 
-    invertFilter->InPlaceOn(); // Reuse the buffer
+    filter->InPlaceOn(); // Reuse the buffer
 
 
     //define datatype here
@@ -95,7 +112,7 @@ public:
     
     //input
     //update the pixel value
-    if(arg == QObject::tr("ITK Sigmoid"))
+    if(menu_name == QObject::tr("ITK Invert Intensity"))
       {
       SigmoidDialog d(p4DImage, parent);
       
@@ -105,13 +122,13 @@ public:
         }
       else
         {
-        invertFilter->Update();
+        filter->Update();
         }
       
       }
-    else if (arg == QObject::tr("about this plugin"))
+    else if (menu_name == QObject::tr("about this plugin"))
       {
-      QMessageBox::information(parent, "Version info", "ITK Sigmoid 1.0 (2010-June-2): this plugin is developed by Luis Ibanez.");
+      QMessageBox::information(parent, "Version info", "ITK Invert Intensity 1.0 (2010-May-12): this plugin is developed by Luis Ibanez.");
       }
     else
       {
@@ -125,11 +142,12 @@ public:
   case v3d_pixel_type: \
     { \
     SigmoidSpecializaed< c_pixel_type > runner; \
-    runner.Execute( arg, p4DImage, parent ); \
+    runner.Execute( menu_name, callback, parent ); \
     break; \
     } 
 
 #define EXECUTE_ALL_PIXEL_TYPES \
+    Image4DSimple *p4DImage = callback.getImage(curwin); \
     if (! p4DImage) return; \
     ImagePixelType pixelType = p4DImage->getDatatype(); \
     switch( pixelType )  \
@@ -142,7 +160,22 @@ public:
         }  \
       }  
  
-void SigmoidPlugin::processImage(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
+void SigmoidPlugin::dofunc(const QString & func_name,
+		const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
-   EXECUTE_ALL_PIXEL_TYPES; 
+  // empty by now
 }
+
+
+void SigmoidPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+{
+	v3dhandle curwin = callback.currentImageWindow();
+	if (!curwin)
+    {
+		v3d_msg(tr("You don't have any image open in the main window."));
+		return;
+    }
+	
+  EXECUTE_ALL_PIXEL_TYPES; 
+}
+
