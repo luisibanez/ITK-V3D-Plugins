@@ -1,0 +1,4 @@
+
+CONFIGURE_V3D_PLUGIN(EdgeDetection ITKGradientMagnitudeRecursiveGaussian)
+#CONFIGURE_V3D_PLUGIN(EdgeDetection ITKCannyEdgeDetection)
+
