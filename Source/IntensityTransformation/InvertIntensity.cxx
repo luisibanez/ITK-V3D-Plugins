@@ -30,9 +30,14 @@ template <typename TPixelType>
 class InvertIntensitySpecializaed
 {
 public:
-  void Execute(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
+  void Execute(const QString &menu_name,  V3DPluginCallback & callback, QWidget *parent)
     {
     typedef TPixelType  PixelType;
+
+    v3dhandle curwin = callback.currentImageWindow();
+	
+    V3D_GlobalSetting globalSetting = callback.getGlobalSetting();
+    Image4DSimple *p4DImage = callback.getImage(curwin);
 
     PixelType * data1d = reinterpret_cast< PixelType * >( p4DImage->getRawData() );
     unsigned long int numberOfPixels = p4DImage->getTotalBytes();
@@ -42,8 +47,18 @@ public:
     long nx = p4DImage->getXDim();
     long ny = p4DImage->getYDim();
     long nz = p4DImage->getZDim();
-    // long sc = p4DImage->getCDim();  // Number of channels
+    long sc = p4DImage->getCDim();  // Number of channels
   
+
+    int channelToFilter = globalSetting.iChannel_for_plugin;
+
+    if( channelToFilter >= sc )
+      {
+      v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
+      return;
+      }
+
+
     const unsigned int Dimension = 3;
 	
     typedef itk::Image< PixelType, Dimension > ImageType;
@@ -95,7 +110,7 @@ public:
     
     //input
     //update the pixel value
-    if(arg == QObject::tr("ITK Invert Intensity"))
+    if(menu_name == QObject::tr("ITK Invert Intensity"))
       {
       InvertIntensityDialog d(p4DImage, parent);
       
@@ -109,7 +124,7 @@ public:
         }
       
       }
-    else if (arg == QObject::tr("about this plugin"))
+    else if (menu_name == QObject::tr("about this plugin"))
       {
       QMessageBox::information(parent, "Version info", "ITK Invert Intensity 1.0 (2010-May-12): this plugin is developed by Luis Ibanez.");
       }
@@ -125,11 +140,12 @@ public:
   case v3d_pixel_type: \
     { \
     InvertIntensitySpecializaed< c_pixel_type > runner; \
-    runner.Execute( arg, p4DImage, parent ); \
+    runner.Execute( menu_name, callback, parent ); \
     break; \
     } 
 
 #define EXECUTE_ALL_PIXEL_TYPES \
+    Image4DSimple *p4DImage = callback.getImage(curwin); \
     if (! p4DImage) return; \
     ImagePixelType pixelType = p4DImage->getDatatype(); \
     switch( pixelType )  \
@@ -142,7 +158,15 @@ public:
         }  \
       }  
  
-void InvertIntensityPlugin::processImage(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
+void InvertIntensityPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
-   EXECUTE_ALL_PIXEL_TYPES; 
+	v3dhandle curwin = callback.currentImageWindow();
+	if (!curwin)
+    {
+		v3d_msg(tr("You don't have any image open in the main window."));
+		return;
+    }
+	
+  EXECUTE_ALL_PIXEL_TYPES; 
 }
+
