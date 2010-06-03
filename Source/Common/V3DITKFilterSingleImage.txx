@@ -1,8 +1,8 @@
 
 #include "V3DITKFilterSingleImage.h"
 
-template <typename TInputPixelType>
-V3DITKFilterSingleImage< TInputPixelType >
+template <typename TInputPixelType, typename TOutputPixelType>
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 ::V3DITKFilterSingleImage( V3DPluginCallback * callback )
 {
   this->m_V3DPluginCallback = callback;
@@ -12,15 +12,16 @@ V3DITKFilterSingleImage< TInputPixelType >
 }
 
 
-template <typename TInputPixelType>
-V3DITKFilterSingleImage< TInputPixelType >
+template <typename TInputPixelType, typename TOutputPixelType>
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 ::~V3DITKFilterSingleImage()
 {
 }
 
 
-template <typename TInputPixelType>
-V3DITKFilterSingleImage< TInputPixelType >
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 ::Initialize()
 {
   this->m_CurrentWindow = this->m_V3DPluginCallback->currentImageWindow();
@@ -29,14 +30,14 @@ V3DITKFilterSingleImage< TInputPixelType >
 
   this->m_4DImage = this->m_V3DPluginCallback->getImage( this->m_CurrentWindow );
 
-  this->m_Data1D = reinterpret_cast< PixelType * >( this->m_4DImage->getRawData() );
+  this->m_Data1D = reinterpret_cast< InputPixelType * >( this->m_4DImage->getRawData() );
 
-  this->m_NumberOfPixelsAlongX = p4DImage->getXDim();
-  this->m_NumberOfPixelsAlongY = p4DImage->getYDim();
-  this->m_NumberOfPixelsAlongZ = p4DImage->getZDim();
-  this->m_NumberOfChannels =     p4DImage->getCDim();
+  this->m_NumberOfPixelsAlongX = this->m_4DImage->getXDim();
+  this->m_NumberOfPixelsAlongY = this->m_4DImage->getYDim();
+  this->m_NumberOfPixelsAlongZ = this->m_4DImage->getZDim();
+  this->m_NumberOfChannels =     this->m_4DImage->getCDim();
       
-  this->m_ChannelToFilter = globalSetting.iChannel_for_plugin;
+  this->m_ChannelToFilter = this->m_GlobalSetting.iChannel_for_plugin;
 
   if( this->m_ChannelToFilter >= this->m_NumberOfChannels )
     {
@@ -47,59 +48,139 @@ V3DITKFilterSingleImage< TInputPixelType >
 }
 
 
-template <typename TInputPixelType>
-V3DITKFilterSingleImage< TInputPixelType >
+template <typename TInputPixelType, typename TOutputPixelType>
+const typename V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >::Input2DImageType *
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::GetInput2DImage() const
+{
+  return this->m_Impor2DFilter->GetOutput();
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+const typename V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >::Input3DImageType *
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::GetInput3DImage() const
+{
+  return this->m_Impor3DFilter->GetOutput();
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 ::TransferInput( int channel, int x1, int x2, int y1, int y2, int z1, int z2 )
 {
-  const unsigned int Dimension = 3;
+  typename Import3DFilterType::SizeType size;
+  size[0] = x2 - x1 + 1;
+  size[1] = y2 - y1 + 1;
+  size[2] = z2 - z1 + 1;
   
-  typedef itk::Image< PixelType, Dimension > ImageType;
+  typename Import3DFilterType::IndexType start;
+  start[0] = x1;
+  start[1] = y1;
+  start[2] = z1;
   
-  typename ImportFilterType::Pointer importFilter = ImportFilterType::New();
-  
-  typename ImportFilterType::SizeType size;
-  size[0] = nx;
-  size[1] = ny;
-  size[2] = nz;
-  
-  typename ImportFilterType::IndexType start;
-  start.Fill( 0 );
-  
-  typename ImportFilterType::RegionType region;
+  typename Import3DFilterType::RegionType region;
   region.SetIndex( start );
   region.SetSize(  size  );
   
-  importFilter->SetRegion( region );
+  this->m_Impor3DFilter->SetRegion( region );
   
   region.SetSize( size );
   
-  typename ImageType::PointType origin;
+  typename Input3DImageType::PointType origin;
   origin.Fill( 0.0 );
   
-  importFilter->SetOrigin( origin );
+  this->m_Impor3DFilter->SetOrigin( origin );
   
   
-  typename ImportFilterType::SpacingType spacing;
+  typename Import3DFilterType::SpacingType spacing;
   spacing.Fill( 1.0 );
   
-  importFilter->SetSpacing( spacing );
+  this->m_Impor3DFilter->SetSpacing( spacing );
   
-  
+  const unsigned int numberOfPixels = region.GetNumberOfPixels();
+
   const bool importImageFilterWillOwnTheBuffer = false;
-  importFilter->SetImportPointer( data1d, numberOfPixels, importImageFilterWillOwnTheBuffer );
+
+  this->m_Impor3DFilter->SetImportPointer( this->m_Data1D, numberOfPixels, importImageFilterWillOwnTheBuffer );
+
 }
       
 
-template <typename TInputPixelType>
-V3DITKFilterSingleImage< TInputPixelType >
-::TransferOutput()
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::Compute()
 {
-  typename CharImageType::PixelContainer * container;
-  
-  container = filter_b->GetOutput()->GetPixelContainer();
+  this->Initialize();
+
+  if( this->m_ChannelToFilter < 0 )
+    {
+    for( unsigned int channel = 0; channel < this->m_NumberOfChannels; channel++ )
+      {
+      int x1 = 0;
+      int y1 = 0;
+      int z1 = 0;
+
+      int x2 = this->m_NumberOfPixelsAlongX;
+      int y2 = this->m_NumberOfPixelsAlongY;
+      int z2 = this->m_NumberOfPixelsAlongZ;
+
+      this->TransferInput( channel, x1, x2, y1, y2, z1, z2 );
+
+      this->ComputeOneRegion();
+      this->TransferOutput();
+      }
+    }
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::SetOutputImage( Output3DImageType * image )
+{
+  this->m_Output3DImage = image;
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::SetOutputImage( Output2DImageType * image )
+{
+  this->m_Output2DImage = image;
+}
+
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::TransferOutput() const
+{
+  typedef typename Output3DImageType::PixelContainer  PixelContainer3DType;
+
+  PixelContainer3DType * container = this->m_Output3DImage->GetPixelContainer();
+
   container->SetContainerManageMemory( false );
   
-  CharPixelType * output1d = container->GetImportPointer();
+  OutputPixelType * output1d = container->GetImportPointer();
   
-  setPluginOutputAndDisplayUsingGlobalSetting( output1d, nx, ny, nz, 1, this->m_V3DPluginCallback );
+  bool transferResult = setPluginOutputAndDisplayUsingGlobalSetting(
+    output1d, 
+    this->m_NumberOfPixelsAlongX,
+    this->m_NumberOfPixelsAlongY,
+    this->m_NumberOfPixelsAlongZ,
+    1,
+    *(this->m_V3DPluginCallback)
+    );
+
+  if( !transferResult )
+    {
+    v3d_msg(QObject::tr("Error while transfering output image."));
+    }
 }
+
