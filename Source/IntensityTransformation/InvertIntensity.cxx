@@ -3,8 +3,8 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "InvertIntensity.h"
 #include "V3DITKFilterSingleImage.h"
+#include "InvertIntensity.h"
 
 // ITK Header Files
 #include "itkInvertIntensityImageFilter.h"
@@ -113,7 +113,7 @@ void InvertIntensityPlugin::domenu(const QString & menu_name, V3DPluginCallback 
     }
 
 	Image4DSimple *p4DImage = callback.getImage(curwin);
-  if (! p4DImage)
+  if (! p4DImage || !p4DImage->valid() )
     {
     v3d_msg(tr("The input image is null."));
     return;
