@@ -72,8 +72,10 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 template <typename TInputPixelType, typename TOutputPixelType>
 void
 V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::TransferInput( InputPixelType * inputBuffer, V3DLONG x1, V3DLONG x2, V3DLONG y1, V3DLONG y2, V3DLONG z1, V3DLONG z2 )
+::TransferInput( const V3D_Image3DBasic & inputImage, V3DLONG x1, V3DLONG x2, V3DLONG y1, V3DLONG y2, V3DLONG z1, V3DLONG z2 )
 {
+  const InputPixelType * constInputBuffer = reinterpret_cast<InputPixelType *>( inputImage.data1d );
+
   typename Import3DFilterType::SizeType size;
   size[0] = x2 - x1;
   size[1] = y2 - y1;
@@ -109,19 +111,13 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 
   const bool importImageFilterWillOwnTheBuffer = false;
 
+  InputPixelType * inputBuffer = const_cast<InputPixelType *>( constInputBuffer );
+
   this->m_Impor3DFilter->SetImportPointer( inputBuffer, numberOfPixels, importImageFilterWillOwnTheBuffer );
 
   this->m_Impor3DFilter->Update();
 
   this->m_Impor3DFilter->GetOutput()->Print( std::cout );
-
-  // DEBUG
-  typedef itk::ImageFileWriter< Input3DImageType > WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName("importedImage.mha");
-  writer->SetInput( this->m_Impor3DFilter->GetOutput() );
-  writer->Update();
-  // DEBUG
 }
       
 
@@ -140,10 +136,12 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   const V3DLONG y2 = this->m_NumberOfPixelsAlongY;
   const V3DLONG z2 = this->m_NumberOfPixelsAlongZ;
 
-  QList< V3D_Image3DBasic > imageList = 
+  QList< V3D_Image3DBasic > inputImageList = 
     getChannelDataForProcessingFromGlobalSetting( this->m_4DImage, *(this->m_V3DPluginCallback) );
 
-  const unsigned int numberOfChannelsToProcess = imageList.size();
+  QList< V3D_Image3DBasic > outputImageList;
+
+  const unsigned int numberOfChannelsToProcess = inputImageList.size();
   if (numberOfChannelsToProcess<=0)
     return;
 
@@ -151,18 +149,23 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 
   for( unsigned int channel = 0; channel < numberOfChannelsToProcess; channel++ )
     {
-    V3D_Image3DBasic inputImage = imageList.at(channel);
-
-    InputPixelType * inputBuffer = reinterpret_cast<InputPixelType *>( inputImage.data1d );
-
     std::cout << "channel = " << channel << std::endl;
 
-    this->TransferInput( inputBuffer, x1, x2, y1, y2, z1, z2 );
+    this->TransferInput( inputImageList.at(channel), x1, x2, y1, y2, z1, z2 );
 
     this->ComputeOneRegion();
 
-    this->TransferOutput();
+    V3D_Image3DBasic outputImage;
+
+    this->TransferOutput( outputImage );
+
+    outputImageList.append( outputImage );
     }
+
+  //
+  // FIXME: Call here a v3d function that passes the outputImageList back to
+  // v3d.
+  //
 }
 
 
@@ -188,7 +191,7 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 template <typename TInputPixelType, typename TOutputPixelType>
 void
 V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::TransferOutput() const
+::TransferOutput( V3D_Image3DBasic & outputImage ) const
 {
   typedef typename Output3DImageType::PixelContainer  PixelContainer3DType;
 
@@ -198,6 +201,12 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   
   OutputPixelType * output1d = container->GetImportPointer();
   
+  outputImage.data1d = reinterpret_cast< unsigned char * >( output1d );
+
+  //
+  //  FIXME: Remove the lines below, once we have setup the 
+  //         process for passing the QList<V3D_Image3DBasic> back to v3d.
+  //
   bool transferResult = setPluginOutputAndDisplayUsingGlobalSetting(
     output1d, 
     this->m_NumberOfPixelsAlongX,
