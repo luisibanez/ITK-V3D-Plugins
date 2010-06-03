@@ -15,15 +15,17 @@
 #include <math.h>
 #include <v3d_interface.h>
 
-class ITKGradientPlugin : public QObject, public V3DSingleImageInterface
+class ITKGradientPlugin : public QObject, public V3DPluginInterface
 {
     Q_OBJECT
-    Q_INTERFACES(V3DSingleImageInterface)
+    Q_INTERFACES(V3DPluginInterface);
 	
 public:
-	ITKGradientPlugin() {}
-    QStringList menulist() const;
-    void processImage(const QString &arg, Image4DSimple *p4DImage, QWidget *parent);
+	QStringList menulist() const;
+	void domenu(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent);
+	
+	QStringList funclist() const {return QStringList();}
+	void dofunc(const QString &func_name, const V3DPluginArgList &input, V3DPluginArgList &output, QWidget *parent) {}
 	
 };
 
@@ -32,8 +34,10 @@ class ITKGradientDialog : public QDialog
 	Q_OBJECT
 	
 public:
-	ITKGradientDialog(Image4DSimple *p4DImage, QWidget *parent)
+	ITKGradientDialog(V3DPluginCallback &callback, QWidget *parent)
 	{
+		Image4DSimple* p4DImage = callback.getImage(callback.currentImageWindow());
+		
 		if (! p4DImage) return;
 		
 		printf("Passing data to data1d\n");

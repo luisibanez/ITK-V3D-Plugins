@@ -10,10 +10,9 @@
 #include "ITKCannyEdgeDetection.h"
 
 // ITK Header Files
+#include "itkImage.h"
 #include "itkCannyEdgeDetectionImageFilter.h"
 #include "itkImportImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkImageFileWriter.h"
 #include "itkCastImageFilter.h"
 
 /** \class CannyEdgeDetectionImageFilter
@@ -64,29 +63,61 @@
 // plugin's project file.
 Q_EXPORT_PLUGIN2(ITKCannyEdgeDetection, ITKCannyEdgeDetectionPlugin)
 
+void itkCannyEdgeDetectionPlugin(V3DPluginCallback &callback, QWidget *parent);
+
+//plugin funcs
+const QString title = "ITK CannyEdgeDetection";
 QStringList ITKCannyEdgeDetectionPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK Canny Edge Detection")
+    return QStringList() << QObject::tr("ITK CannyEdgeDetection")
 						 << QObject::tr("about this plugin");
 }
+
+void ITKCannyEdgeDetectionPlugin::domenu(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
+{
+    if (menu_name == QObject::tr("ITK CannyEdgeDetection"))
+    {
+    	itkCannyEdgeDetectionPlugin(callback, parent);
+    }
+	else if (menu_name == QObject::tr("about this plugin"))
+	{
+		QMessageBox::information(parent, "Version info", "ITK Canny Edge Detction 1.0 (2010-June-02): this plugin is developed by Yang Yu.");
+	}
+}
+
 
 template <typename TInputPixelType, typename TOutputPixelType>
 class ITKCannyEdgeDetectionImageFilterSpecializaed
 {
 public:
-	void Execute(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
+	void Execute(V3DPluginCallback &callback, QWidget *parent)
 	{
+		v3dhandle curwin = callback.currentImageWindow();
+		
+		V3D_GlobalSetting globalSetting = callback.getGlobalSetting();
+		Image4DSimple *p4DImage = callback.getImage(curwin);
+		
 		typedef TInputPixelType  PixelType;
 		
 		PixelType * data1d = reinterpret_cast< PixelType * >( p4DImage->getRawData() );
 		unsigned long int numberOfPixels = p4DImage->getTotalBytes();
 		
-		// long pagesz = p4DImage->getTotalUnitNumberPerChannel();
+		long pagesz = p4DImage->getTotalUnitNumberPerChannel();
 		
 		long nx = p4DImage->getXDim();
 		long ny = p4DImage->getYDim();
 		long nz = p4DImage->getZDim();
-		// long sc = p4DImage->getCDim();  // Number of channels
+		long nc = p4DImage->getCDim();  // Number of channels
+		
+		int channelToFilter = globalSetting.iChannel_for_plugin;
+		
+		if( channelToFilter >= nc )
+		{
+			v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
+			return;
+		}
+		
+		long offsets = channelToFilter*pagesz;
 		
 		const unsigned int Dimension = 3;
 		
@@ -123,20 +154,13 @@ public:
 		
 		importFilter->SetSpacing( spacing );
 		
-		
 		const bool importImageFilterWillOwnTheBuffer = false;
-		importFilter->SetImportPointer( data1d, numberOfPixels, importImageFilterWillOwnTheBuffer );
 		
 		typedef itk::CastImageFilter< InputImageType, OutputImageType> CastImageFilterType;
 		typename CastImageFilterType::Pointer castImageFilter = CastImageFilterType::New();
 		
-		castImageFilter->SetInput( importFilter->GetOutput() );
-		castImageFilter->Update();
-		
 		typedef itk::CannyEdgeDetectionImageFilter<OutputImageType, OutputImageType> CannyEdgeDetectionType;
 		typename CannyEdgeDetectionType::Pointer cannyedgedetectionFilter = CannyEdgeDetectionType::New();
-		
-		cannyedgedetectionFilter->SetInput( castImageFilter->GetOutput() );
 		
 		//set Parameters
 		// m_Variance m_MaximumError m_Threshold m_UpperThreshold m_LowerThreshold m_OutsideValue
@@ -149,58 +173,98 @@ public:
 		float maxerr = 0.5; //Maximum Error Must be in the range [ 0.0 , 1.0 ]
 		unsigned char th = 25;
 		
-		cannyedgedetectionFilter->SetVariance(var);
-		cannyedgedetectionFilter->SetMaximumError(maxerr);
-		cannyedgedetectionFilter->SetThreshold(th);
-		
-		
-		try
-		{
-			cannyedgedetectionFilter->Update();
-		}
-		catch( itk::ExceptionObject & excp)
-		{
-			std::cerr << "Error run this filter." << std::endl;
-			std::cerr << excp << std::endl;
-			return;
-		}
-		
-		// output
-		typedef itk::RescaleIntensityImageFilter<OutputImageType, InputImageType > RescaleFilterType;
-		typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
-		rescaleFilter->SetInput( cannyedgedetectionFilter->GetOutput() );
-		
-		typedef itk::ImageFileWriter< InputImageType >  WriterType;
-		
-		typename WriterType::Pointer writer = WriterType::New();
-		writer->SetFileName("output.tif");
-		writer->SetInput(rescaleFilter->GetOutput());
-		try
-		{
-			writer->Update();
-		}
-		catch( itk::ExceptionObject & excp)
-		{
-			std::cerr << "Error run this filter." << std::endl;
-			std::cerr << excp << std::endl;
-			return;
-		}
-		
-		//define datatype here
-		//
-		
 		//input
 		//update the pixel value
-		if(arg == QObject::tr("ITK Canny Edge Detction"))
+		ITKCannyEdgeDetectionDialog d(callback, parent);
+		
+		if (d.exec()!=QDialog::Accepted)
 		{
-			ITKCannyEdgeDetectionDialog d(p4DImage, parent);
+			return;
+		}
+		else
+		{
 			
-			if (d.exec()!=QDialog::Accepted)
+			//consider multiple channels
+			if(channelToFilter==-1)
 			{
-				return;
+				TOutputPixelType *output1d;
+				try
+				{
+					output1d = new TOutputPixelType [numberOfPixels];
+				}
+				catch(...)
+				{
+					std::cerr << "Error memroy allocating." << std::endl;
+					return;
+				}
+				
+				const bool filterWillDeleteTheInputBuffer = false;
+				
+				for(long ch=0; ch<nc; ch++)
+				{
+					offsets = ch*pagesz;
+					
+					TOutputPixelType *p = output1d+offsets;
+					
+					importFilter->SetImportPointer( data1d+offsets, pagesz, importImageFilterWillOwnTheBuffer );
+					
+					castImageFilter->SetInput( importFilter->GetOutput() );
+					try
+					{
+						castImageFilter->Update();
+					}
+					catch( itk::ExceptionObject & excp)
+					{
+						std::cerr << "Error run this filter." << std::endl;
+						std::cerr << excp << std::endl;
+						return;
+					}
+					
+					cannyedgedetectionFilter->SetInput( castImageFilter->GetOutput() );
+					
+					cannyedgedetectionFilter->SetVariance(var);
+					cannyedgedetectionFilter->SetMaximumError(maxerr);
+					cannyedgedetectionFilter->SetThreshold(th);
+					
+					cannyedgedetectionFilter->GetOutput()->GetPixelContainer()->SetImportPointer( p, pagesz, filterWillDeleteTheInputBuffer);
+					
+					try
+					{
+						cannyedgedetectionFilter->Update();
+					}
+					catch( itk::ExceptionObject & excp)
+					{
+						std::cerr << "Error run this filter." << std::endl;
+						std::cerr << excp << std::endl;
+						return;
+					}
+					
+				}
+				
+				setPluginOutputAndDisplayUsingGlobalSetting(output1d, nx, ny, nz, nc, callback);
 			}
-			else
+			else if(channelToFilter<nc)
 			{
+				importFilter->SetImportPointer( data1d+offsets, pagesz, importImageFilterWillOwnTheBuffer );
+				
+				castImageFilter->SetInput( importFilter->GetOutput() );
+				try
+				{
+					castImageFilter->Update();
+				}
+				catch( itk::ExceptionObject & excp)
+				{
+					std::cerr << "Error run this filter." << std::endl;
+					std::cerr << excp << std::endl;
+					return;
+				}
+				
+				cannyedgedetectionFilter->SetInput( castImageFilter->GetOutput() );
+				
+				cannyedgedetectionFilter->SetVariance(var);
+				cannyedgedetectionFilter->SetMaximumError(maxerr);
+				cannyedgedetectionFilter->SetThreshold(th);
+				
 				try
 				{
 					cannyedgedetectionFilter->Update();
@@ -213,37 +277,23 @@ public:
 				}
 				
 				// output
-				typedef itk::RescaleIntensityImageFilter<OutputImageType, InputImageType > RescaleFilterType;
-				typename RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
-				rescaleFilter->SetInput( cannyedgedetectionFilter->GetOutput() );
+				typename OutputImageType::PixelContainer * container;
 				
-				typedef itk::ImageFileWriter< InputImageType >  WriterType;
+				container =cannyedgedetectionFilter->GetOutput()->GetPixelContainer();
+				container->SetContainerManageMemory( false );
 				
-				typename WriterType::Pointer writer = WriterType::New();
-				writer->SetFileName("output.tif");
-				writer->SetInput(rescaleFilter->GetOutput());
-				try
-				{
-					writer->Update();
-				}
-				catch( itk::ExceptionObject & excp)
-				{
-					std::cerr << "Error run this filter." << std::endl;
-					std::cerr << excp << std::endl;
-					return;
-				}
+				typedef TOutputPixelType OutputPixelType;
+				OutputPixelType * output1d = container->GetImportPointer();
+				
+				setPluginOutputAndDisplayUsingGlobalSetting(output1d, nx, ny, nz, 1, callback);
 			}
 			
+			
+			
 		}
-		else if (arg == QObject::tr("about this plugin"))
-		{
-			QMessageBox::information(parent, "Version info", "ITK Canny Edge Detction 1.0 (2010-June-02): this plugin is developed by Yang Yu.");
-		}
-		else
-		{
-			return;
-		}
-	}
+			
+
+	} // excute
 	
 };
 
@@ -251,7 +301,7 @@ public:
 	case v3d_pixel_type: \
 	{ \
 		ITKCannyEdgeDetectionImageFilterSpecializaed< input_pixel_type, output_pixel_type > runner; \
-		runner.Execute( arg, p4DImage, parent ); \
+		runner.Execute( callback, parent ); \
 		break; \
 	} 
 
@@ -268,8 +318,15 @@ public:
 		}  \
 	}   
 
-void ITKCannyEdgeDetectionPlugin::processImage(const QString &arg, Image4DSimple *p4DImage, QWidget *parent)
+void itkCannyEdgeDetectionPlugin(V3DPluginCallback &callback, QWidget *parent)
 {
+	Image4DSimple* p4DImage = callback.getImage(callback.currentImageWindow());
+	if (!p4DImage)
+    {
+		v3d_msg(QObject::tr("You don't have any image open in the main window."));
+		return;
+    }
+	
 	EXECUTE_ALL_PIXEL_TYPES; 
 }
 

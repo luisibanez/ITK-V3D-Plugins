@@ -112,10 +112,20 @@ public:
 
 	typedef unsigned char CharPixelType;	
 	typedef itk::Image<CharPixelType, Dimension> CharImageType;	
-	typedef itk::BinaryErodeImageFilter< ImageType, CharImageType, StructuringElementType > MyFilterType;
-    typename MyFilterType::Pointer filter = MyFilterType::New();
+	typedef itk::BinaryErodeImageFilter< ImageType, CharImageType, StructuringElementType > MyBinaryFilterType;
+    typename MyBinaryFilterType::Pointer filter_b = MyBinaryFilterType::New();
+	typedef itk::GrayscaleErodeImageFilter< ImageType, ImageType, StructuringElementType > MyGrayscaleFilterType;
+	typename MyGrayscaleFilterType::Pointer filter_g = MyGrayscaleFilterType::New();
 
-    filter->SetInput( importFilter->GetOutput() );
+		
+	//now determine which one to use based on histogram
+	bool b_use_binary = false; //need ths histogram later
+		
+	//	
+	if (b_use_binary)	
+		filter_b->SetInput( importFilter->GetOutput() );
+	else
+		filter_g->SetInput( importFilter->GetOutput() );
 
     //filter->InPlaceOn(); // Reuse the buffer
 
@@ -124,12 +134,17 @@ public:
 	StructuringElementType  structuringElement;	
 	structuringElement.SetRadius( 1 );  // 3x3 structuring element
 	structuringElement.CreateStructuringElement();
-	filter->SetKernel(  structuringElement );
+		
+	if (b_use_binary)	
+		filter_b->SetKernel(  structuringElement );
+	else	
+		filter_g->SetKernel(  structuringElement );
 		
 	//PixelType background =   0;
 	PixelType foreground = 255;
-	filter->SetErodeValue( foreground );
-
+	if (b_use_binary)
+		filter_b->SetErodeValue( foreground );
+	
     //define datatype here
     //
     
@@ -147,7 +162,16 @@ public:
         {
 			try
 			{
-				filter->Update(); //the actual computation happens here!
+				if (b_use_binary)
+				{
+					v3d_msg(QObject::tr("Now use binary filter"));
+					filter_b->Update(); //the actual computation happens here!
+				}
+				else {
+					v3d_msg(QObject::tr("Now use grayscale filter"));
+					filter_g->Update(); 
+				}
+
 			}
 			catch ( itk::ExceptionObject & excp )
 			{
@@ -157,14 +181,29 @@ public:
 			
 			//output
 			
-			typename CharImageType::PixelContainer * container;
+			if (b_use_binary)
+			{
+				typename CharImageType::PixelContainer * container;
 			
-			container = filter->GetOutput()->GetPixelContainer();
-			container->SetContainerManageMemory( false );
-			
-			CharPixelType * output1d = container->GetImportPointer();
+				container = filter_b->GetOutput()->GetPixelContainer();
+				container->SetContainerManageMemory( false );
+				
+				CharPixelType * output1d = container->GetImportPointer();
 
-			setPluginOutputAndDisplayUsingGlobalSetting( output1d, nx, ny, nz, 1, callback );
+				setPluginOutputAndDisplayUsingGlobalSetting( output1d, nx, ny, nz, 1, callback );
+			}
+			else 
+			{
+				typename ImageType::PixelContainer * container;
+
+				container = filter_g->GetOutput()->GetPixelContainer();
+				container->SetContainerManageMemory( false );
+				
+				PixelType * output1d = container->GetImportPointer();
+				
+				setPluginOutputAndDisplayUsingGlobalSetting( output1d, nx, ny, nz, 1, callback );
+			}
+
         }
       
       }

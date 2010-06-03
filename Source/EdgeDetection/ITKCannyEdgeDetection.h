@@ -15,15 +15,17 @@
 #include <math.h>
 #include <v3d_interface.h>
 
-class ITKCannyEdgeDetectionPlugin : public QObject, public V3DSingleImageInterface
+class ITKCannyEdgeDetectionPlugin : public QObject, public V3DPluginInterface
 {
     Q_OBJECT
-    Q_INTERFACES(V3DSingleImageInterface)
+    Q_INTERFACES(V3DPluginInterface);
 	
 public:
-	ITKCannyEdgeDetectionPlugin() {}
-    QStringList menulist() const;
-    void processImage(const QString &arg, Image4DSimple *p4DImage, QWidget *parent);
+	QStringList menulist() const;
+	void domenu(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent);
+	
+	QStringList funclist() const {return QStringList();}
+	void dofunc(const QString &func_name, const V3DPluginArgList &input, V3DPluginArgList &output, QWidget *parent) {}
 	
 };
 
@@ -32,8 +34,10 @@ class ITKCannyEdgeDetectionDialog : public QDialog
 	Q_OBJECT
 	
 public:
-	ITKCannyEdgeDetectionDialog(Image4DSimple *p4DImage, QWidget *parent)
+	ITKCannyEdgeDetectionDialog(V3DPluginCallback &callback, QWidget *parent)
 	{
+		Image4DSimple* p4DImage = callback.getImage(callback.currentImageWindow());
+		
 		if (! p4DImage) return;
 		
 		printf("Passing data to data1d\n");
@@ -45,7 +49,7 @@ public:
 		
 		gridLayout->addWidget(cancel, 0,0); gridLayout->addWidget(ok, 0,1);
 		setLayout(gridLayout);
-		setWindowTitle(QString("Canny Edge Detection"));
+		setWindowTitle(QString("Gradient Magnitude Recursive Gaussian"));
 		
 		connect(ok,     SIGNAL(clicked()), this, SLOT(accept()));
 		connect(cancel, SIGNAL(clicked()), this, SLOT(reject()));
@@ -62,7 +66,6 @@ public:
 	QPushButton* ok;
 	QPushButton* cancel;
 };
-
 
 
 #endif
