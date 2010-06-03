@@ -29,7 +29,7 @@ QStringList InvertIntensityPlugin::funclist() const
 
 
 template <typename TPixelType>
-class InvertIntensitySpecializaed
+class InvertIntensitySpecialized
 {
 public:
   void Execute(const QString &menu_name,  V3DPluginCallback & callback, QWidget *parent)
@@ -95,9 +95,10 @@ public:
   
     importFilter->SetSpacing( spacing );
 
+    PixelType * componentData1d = data1d + channelToFilter * numberOfPixels;
 
     const bool importImageFilterWillOwnTheBuffer = false;
-    importFilter->SetImportPointer( data1d, numberOfPixels, importImageFilterWillOwnTheBuffer );
+    importFilter->SetImportPointer( componentData1d, numberOfPixels, importImageFilterWillOwnTheBuffer );
 
     typedef itk::InvertIntensityImageFilter< ImageType, ImageType > InvertFilterType;
     typename InvertFilterType::Pointer filter = InvertFilterType::New();
@@ -141,7 +142,7 @@ public:
 #define EXECUTE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
-    InvertIntensitySpecializaed< c_pixel_type > runner; \
+    InvertIntensitySpecialized< c_pixel_type > runner; \
     runner.Execute( menu_name, callback, parent ); \
     break; \
     } 

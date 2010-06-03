@@ -1,12 +1,9 @@
-/* ITKInvertIntensity.h
- * 2010-05-12: create this program by Luis Ibanez
+/* GradientAnisotropicDiffusion.h
+ * 2010-06-02: create this program by Lei Qu
  */
 
-#ifndef __ITKInvertIntensity_H__
-#define __ITKInvertIntensity_H__
-
-//   Invert the image intensity.
-//
+#ifndef __GRADIENTANISOTROPICDIFFUSION_H__
+#define __GRADIENTANISOTROPICDIFFUSION_H__
 
 #include <QtGui>
 #include <stdio.h>
@@ -15,26 +12,26 @@
 #include <math.h>
 #include <v3d_interface.h>
 
-class ITKInvertIntensityPlugin: public QObject, public V3DSingleImageInterface
+class ITKGradientAnisotropicDiffusionPlugin: public QObject, public V3DPluginInterface
 {
 	Q_OBJECT
-	Q_INTERFACES(V3DSingleImageInterface)
+	Q_INTERFACES(V3DPluginInterface)
 
 public:
-	ITKInvertIntensityPlugin()
-	{
-	}
 	QStringList menulist() const;
-	void processImage(const QString &arg, Image4DSimple *p4DImage, QWidget *parent);
+	void domenu(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent);
+
+	QStringList funclist() const {return QStringList();}
+	void dofunc(const QString &func_name, const V3DPluginArgList &input, V3DPluginArgList &output, QWidget *parent) {}
 
 };
 
-class ITKInvertIntensityDialog: public QDialog
+class ITKGradientAnisotropicDiffusionDialog: public QDialog
 {
 Q_OBJECT
 
 public:
-	ITKInvertIntensityDialog(Image4DSimple *p4DImage, QWidget *parent)
+	ITKGradientAnisotropicDiffusionDialog(Image4DSimple *p4DImage, QWidget *parent)
 	{
 		if (!p4DImage)
 			return;
@@ -55,7 +52,7 @@ public:
 		connect(cancel, SIGNAL(clicked()), this, SLOT(reject()));
 	}
 
-	~ITKInvertIntensityDialog()
+	~ITKGradientAnisotropicDiffusionDialog()
 	{
 	}
 
