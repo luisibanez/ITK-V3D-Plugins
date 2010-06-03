@@ -5,9 +5,10 @@ INCLUDE_DIRECTORIES(
 
 ADD_SUBDIRECTORY(V3DInterface)
 # ADD_SUBDIRECTORY(ConnectedComponents)
-ADD_SUBDIRECTORY(IntensityTransformation)
+# ADD_SUBDIRECTORY(IntensityTransformation)
 ADD_SUBDIRECTORY(MathMorphology)
 # ADD_SUBDIRECTORY(RegionGrowing)
 ADD_SUBDIRECTORY(Smoothing)
-# ADD_SUBDIRECTORY(Thresholding)
+ADD_SUBDIRECTORY(Thresholding)
 ADD_SUBDIRECTORY(EdgeDetection)
+ADD_SUBDIRECTORY(LevelSets)

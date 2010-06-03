@@ -49,7 +49,7 @@ public:
 		
 		gridLayout->addWidget(cancel, 0,0); gridLayout->addWidget(ok, 0,1);
 		setLayout(gridLayout);
-		setWindowTitle(QString("Gradient Magnitude Recursive Gaussian"));
+		setWindowTitle(QString("Canny Edge Detection"));
 		
 		connect(ok,     SIGNAL(clicked()), this, SLOT(accept()));
 		connect(cancel, SIGNAL(clicked()), this, SLOT(reject()));
@@ -57,7 +57,7 @@ public:
 	
 	~ITKCannyEdgeDetectionDialog(){}
 	
-	public slots:
+public slots:
 	
 	
 public:
