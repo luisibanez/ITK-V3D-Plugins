@@ -45,6 +45,7 @@ public:
 
   virtual void ComputeOneRegion()
     {
+    std::cout << "ComputeOneRegion() " << std::endl;
     typedef TPixelType  PixelType;
 
     typedef typename Superclass::Input3DImageType   ImageType;
@@ -56,7 +57,11 @@ public:
 
     filter->InPlaceOn();
     
+    std::cout << "Before filter->Update()" << std::endl;
     filter->Update();
+    std::cout << "After filter->Update()" << std::endl;
+
+    this->SetOutputImage( filter->GetOutput() );
     }
 };
 

@@ -28,7 +28,10 @@ protected:
 
   virtual void Compute();
   virtual void Initialize();
-  virtual void TransferInput( int channel, int x1, int x2, int y1, int y2, int z1, int z2 );
+
+  virtual void TransferInput( InputPixelType * inputBuffer, 
+    V3DLONG x1, V3DLONG x2, V3DLONG y1, V3DLONG y2, V3DLONG z1, V3DLONG z2 );
+
   virtual void ComputeOneRegion() = 0;
   virtual void TransferOutput() const;
 
@@ -61,8 +64,6 @@ private:
   V3DLONG                                   m_NumberOfPixelsAlongZ;
   V3DLONG                                   m_NumberOfChannels;
  
-  int                                       m_ChannelToFilter;
-
   typename Output2DImageType::Pointer       m_Output2DImage;
   typename Output3DImageType::Pointer       m_Output3DImage;
 

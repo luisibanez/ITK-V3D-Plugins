@@ -3,6 +3,11 @@
 
 #include "V3DITKFilterSingleImage.h"
 
+// DEBUG
+#include "itkImageFileWriter.h"
+// DEBUG
+
+
 template <typename TInputPixelType, typename TOutputPixelType>
 V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 ::V3DITKFilterSingleImage( V3DPluginCallback * callback )
@@ -38,15 +43,11 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   this->m_NumberOfPixelsAlongY = this->m_4DImage->getYDim();
   this->m_NumberOfPixelsAlongZ = this->m_4DImage->getZDim();
   this->m_NumberOfChannels =     this->m_4DImage->getCDim();
-      
-  this->m_ChannelToFilter = this->m_GlobalSetting.iChannel_for_plugin;
 
-  if( this->m_ChannelToFilter >= this->m_NumberOfChannels )
-    {
-    v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
-    return;
-    }
- 
+  std::cout << "Nx = " << this->m_NumberOfPixelsAlongX << std::endl;
+  std::cout << "Ny = " << this->m_NumberOfPixelsAlongY << std::endl;
+  std::cout << "Nz = " << this->m_NumberOfPixelsAlongZ << std::endl;
+  std::cout << "Nc = " << this->m_NumberOfChannels     << std::endl;
 }
 
 
@@ -71,12 +72,12 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 template <typename TInputPixelType, typename TOutputPixelType>
 void
 V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::TransferInput( int channel, int x1, int x2, int y1, int y2, int z1, int z2 )
+::TransferInput( InputPixelType * inputBuffer, V3DLONG x1, V3DLONG x2, V3DLONG y1, V3DLONG y2, V3DLONG z1, V3DLONG z2 )
 {
   typename Import3DFilterType::SizeType size;
-  size[0] = x2 - x1 + 1;
-  size[1] = y2 - y1 + 1;
-  size[2] = z2 - z1 + 1;
+  size[0] = x2 - x1;
+  size[1] = y2 - y1;
+  size[2] = z2 - z1;
   
   typename Import3DFilterType::IndexType start;
   start[0] = x1;
@@ -87,6 +88,8 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   region.SetIndex( start );
   region.SetSize(  size  );
   
+  std::cout << "Region = " << region  << std::endl;
+
   this->m_Impor3DFilter->SetRegion( region );
   
   region.SetSize( size );
@@ -106,8 +109,19 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 
   const bool importImageFilterWillOwnTheBuffer = false;
 
-  this->m_Impor3DFilter->SetImportPointer( this->m_Data1D, numberOfPixels, importImageFilterWillOwnTheBuffer );
+  this->m_Impor3DFilter->SetImportPointer( inputBuffer, numberOfPixels, importImageFilterWillOwnTheBuffer );
 
+  this->m_Impor3DFilter->Update();
+
+  this->m_Impor3DFilter->GetOutput()->Print( std::cout );
+
+  // DEBUG
+  typedef itk::ImageFileWriter< Input3DImageType > WriterType;
+  typename WriterType::Pointer writer = WriterType::New();
+  writer->SetFileName("importedImage.mha");
+  writer->SetInput( this->m_Impor3DFilter->GetOutput() );
+  writer->Update();
+  // DEBUG
 }
       
 
@@ -118,33 +132,31 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 {
   this->Initialize();
 
-  const int x1 = 0;
-  const int y1 = 0;
-  const int z1 = 0;
+  const V3DLONG x1 = 0;
+  const V3DLONG y1 = 0;
+  const V3DLONG z1 = 0;
 
-  const int x2 = this->m_NumberOfPixelsAlongX;
-  const int y2 = this->m_NumberOfPixelsAlongY;
-  const int z2 = this->m_NumberOfPixelsAlongZ;
+  const V3DLONG x2 = this->m_NumberOfPixelsAlongX;
+  const V3DLONG y2 = this->m_NumberOfPixelsAlongY;
+  const V3DLONG z2 = this->m_NumberOfPixelsAlongZ;
 
-  if( this->m_ChannelToFilter < 0 )
+  QList< V3D_Image3DBasic > imageList = 
+    getChannelDataForProcessingFromGlobalSetting( this->m_4DImage, *(this->m_V3DPluginCallback) );
+
+  const unsigned int numberOfChannelsToProcess = imageList.size();
+
+  for( unsigned int channel = 0; channel < numberOfChannelsToProcess; channel++ )
     {
-    std::cout << "Processing all channels " << this->m_ChannelToFilter << std::endl;
+    V3D_Image3DBasic inputImage = imageList.at(channel);
 
-    for( unsigned int channel = 0; channel < this->m_NumberOfChannels; channel++ )
-      {
-      // FIXME Use new API
-      this->TransferInput( channel, x1, x2, y1, y2, z1, z2 );
+    InputPixelType * inputBuffer = reinterpret_cast<InputPixelType *>( inputImage.data1d );
 
-      this->ComputeOneRegion();
-      this->TransferOutput();
-      }
-    }
-  else
-    {
-    std::cout << "Processing a single channel # " << this->m_ChannelToFilter << std::endl;
-    this->TransferInput( this->m_ChannelToFilter, x1, x2, y1, y2, z1, z2 );
+    std::cout << "channel = " << channel << std::endl;
+
+    this->TransferInput( inputBuffer, x1, x2, y1, y2, z1, z2 );
 
     this->ComputeOneRegion();
+
     this->TransferOutput();
     }
 }
