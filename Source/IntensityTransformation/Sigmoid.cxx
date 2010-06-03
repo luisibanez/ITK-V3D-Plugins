@@ -42,7 +42,6 @@ public:
     Image4DSimple *p4DImage = callback.getImage(curwin);
 
     PixelType * data1d = reinterpret_cast< PixelType * >( p4DImage->getRawData() );
-    unsigned long int numberOfPixels = p4DImage->getTotalBytes();
 
     // long pagesz = p4DImage->getTotalUnitNumberPerChannel();
 	
@@ -51,6 +50,7 @@ public:
     long nz = p4DImage->getZDim();
     long sc = p4DImage->getCDim();  // Number of channels
   
+    unsigned long int numberOfPixels = nx * ny * nz;
 
     int channelToFilter = globalSetting.iChannel_for_plugin;
 

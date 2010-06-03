@@ -32,10 +32,11 @@ template <typename TPixelType>
 class InvertIntensitySpecialized : V3DITKFilterSingleImage< TPixelType, TPixelType >
 {
 public:
-  InvertIntensitySpecialized( V3DPluginCallback & callback );
+  typedef V3DITKFilterSingleImage< TPixelType, TPixelType >    Superclass;
+
+  InvertIntensitySpecialized( V3DPluginCallback * callback ): Superclass(callback) {}
   virtual ~InvertIntensitySpecialized() {};
 
-  typedef V3DITKFilterSingleImage< TPixelType, TPixelType >    Superclass;
   
   void Execute(const QString &menu_name, QWidget *parent)
     {
@@ -44,6 +45,7 @@ public:
 
   virtual void ComputeOneRegion()
     {
+    std::cout << "ComputeOneRegion() " << std::endl;
     typedef TPixelType  PixelType;
 
     typedef typename Superclass::Input3DImageType   ImageType;
@@ -55,15 +57,23 @@ public:
 
     filter->InPlaceOn();
     
+    std::cout << "Before filter->Update()" << std::endl;
     filter->Update();
+    std::cout << "After filter->Update()" << std::endl;
+
+    this->SetOutputImage( filter->GetOutput() );
     }
+	
+  virtual void SetupParameters()
+	{
+	}
 };
 
 
 #define EXECUTE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
-    InvertIntensitySpecialized< c_pixel_type > runner( callback ); \
+    InvertIntensitySpecialized< c_pixel_type > runner( &callback ); \
     runner.Execute( menu_name, parent ); \
     break; \
     } 
