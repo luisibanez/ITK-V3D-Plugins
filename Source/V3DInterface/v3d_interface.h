@@ -126,7 +126,7 @@ inline QList<V3D_Image3DBasic> getChannelDataForProcessingFromGlobalSetting( Ima
 	
 	//get the list of channels for processing
 	QList<V3DLONG> chlist = getChannelListForProcessingFromGlobalSetting( p->getCDim(), callback );
-	for (V3DLONG i; i<chlist.size(); i++)
+	for (V3DLONG i=0; i<chlist.size(); i++)
 	{
 		V3D_Image3DBasic v;
 		v.setData(p, chlist.at(i));
