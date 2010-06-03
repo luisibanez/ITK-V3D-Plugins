@@ -1,3 +1,5 @@
+#ifndef __V3DITKFilterSingleImage_TXX__
+#define __V3DITKFilterSingleImage_TXX__
 
 #include "V3DITKFilterSingleImage.h"
 
@@ -116,23 +118,34 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 {
   this->Initialize();
 
+  const int x1 = 0;
+  const int y1 = 0;
+  const int z1 = 0;
+
+  const int x2 = this->m_NumberOfPixelsAlongX;
+  const int y2 = this->m_NumberOfPixelsAlongY;
+  const int z2 = this->m_NumberOfPixelsAlongZ;
+
   if( this->m_ChannelToFilter < 0 )
     {
+    std::cout << "Processing all channels " << this->m_ChannelToFilter << std::endl;
+
     for( unsigned int channel = 0; channel < this->m_NumberOfChannels; channel++ )
       {
-      int x1 = 0;
-      int y1 = 0;
-      int z1 = 0;
-
-      int x2 = this->m_NumberOfPixelsAlongX;
-      int y2 = this->m_NumberOfPixelsAlongY;
-      int z2 = this->m_NumberOfPixelsAlongZ;
-
+      // FIXME Use new API
       this->TransferInput( channel, x1, x2, y1, y2, z1, z2 );
 
       this->ComputeOneRegion();
       this->TransferOutput();
       }
+    }
+  else
+    {
+    std::cout << "Processing a single channel # " << this->m_ChannelToFilter << std::endl;
+    this->TransferInput( this->m_ChannelToFilter, x1, x2, y1, y2, z1, z2 );
+
+    this->ComputeOneRegion();
+    this->TransferOutput();
     }
 }
 
@@ -184,3 +197,4 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
     }
 }
 
+#endif
