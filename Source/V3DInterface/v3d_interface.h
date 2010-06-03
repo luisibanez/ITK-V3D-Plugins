@@ -95,7 +95,7 @@ template <class T> bool setPluginOutputAndDisplayUsingGlobalSetting(T * pluginou
 	V3DLONG totalunits = sz0*sz1*sz2*sz3;
 	if (totalunits<=0) 
 	{
-		v3d_msg("Overflow of the *long* data type. Don't output the plugin results.\n");
+		v3d_msg(QObject::tr("Overflow of the *long* data type. Don't output the plugin results.\n"));
 		return false;
 	}
 	
