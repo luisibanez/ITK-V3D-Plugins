@@ -1,5 +1,5 @@
-/* GradientAnisotropicDiffusion.cpp
- * 2010-06-02: create this program by Lei Qu
+/* MeanFilter.cpp
+ * 2010-06-03: create this program by Lei Qu
  */
 
 #include <QtGui>
@@ -7,26 +7,26 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "GradientAnisotropicDiffusion.h"
+#include "MeanFilter.h"
 
 // ITK Header Files
+#include "itkImage.h"
 #include "itkImportImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include "itkGradientAnisotropicDiffusionImageFilter.h"
+#include "itkMeanImageFilter.h"
 #include "itkImageFileWriter.h"
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(GradientAnisotropicDiffusion, ITKGradientAnisotropicDiffusionPlugin)
+Q_EXPORT_PLUGIN2(MeanFilter, ITKMeanFilterPlugin)
 
-QStringList ITKGradientAnisotropicDiffusionPlugin::menulist() const
+QStringList ITKMeanFilterPlugin::menulist() const
 {
-	return QStringList() << QObject::tr("ITK GradientAnisotropicDiffusion Filter ...");
+	return QStringList() << QObject::tr("ITK Mean Filter ...");
 }
 
 template<typename TPixelType>
-class ITKGradientAnisotropicDiffusionSpecializaed
+class ITKMeanFilterSpecializaed
 {
 public:
 	void Execute(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
@@ -79,34 +79,15 @@ public:
 		importFilter->SetImportPointer(data1d, numberOfPixels,importImageFilterWillOwnTheBuffer);
 
 		//------------------------------------------------------------------
-		//setup filter: cast datatype to float for anisotropic process
-		typedef itk::Image< float, Dimension >   	ImageType_mid;
-		typedef itk::RescaleIntensityImageFilter<ImageType_input, ImageType_mid > RescaleFilterType_input;
-
-		typename RescaleFilterType_input::Pointer rescaler_8u_32f = RescaleFilterType_input::New();
-		rescaler_8u_32f->SetOutputMinimum(   0 );
-		rescaler_8u_32f->SetOutputMaximum( 255 );
-
-		//------------------------------------------------------------------
-		//setup filter: Gradient Anisotropic Diffusion
-		typedef itk::GradientAnisotropicDiffusionImageFilter<ImageType_mid,ImageType_mid> AniFilterType;
-		typename AniFilterType::Pointer filter = AniFilterType::New();
+		//setup filter: Mean Filter
+		typedef itk::MeanImageFilter<ImageType_input,ImageType_input> FilterType;
+		typename FilterType::Pointer filter = FilterType::New();
 
 		//set paras
-		unsigned int numberOfIterations	=5;
-		double       timeStep			=0.2;
-		const double conductance		=3.0;
-		filter->SetNumberOfIterations( numberOfIterations );
-		filter->SetTimeStep( timeStep );
-		filter->SetConductanceParameter( conductance );
-
-		//------------------------------------------------------------------
-		//setup filter: cast datatype back to PixelType for output
-		typedef itk::RescaleIntensityImageFilter<ImageType_mid,ImageType_input> RescaleFilterType_output;
-
-		typename RescaleFilterType_output::Pointer rescaler_32f_8u = RescaleFilterType_output::New();
-		rescaler_32f_8u->SetOutputMinimum(   0 );
-		rescaler_32f_8u->SetOutputMaximum( 255 );
+		typename ImageType_input::SizeType indexRadius;
+		indexRadius[0] = 1; // radius along x
+		indexRadius[1] = 1; // radius along y
+		filter->SetRadius( indexRadius );
 
 		//------------------------------------------------------------------
 		//setup filter: write processed image to disk
@@ -116,16 +97,14 @@ public:
 
 		//------------------------------------------------------------------
 		//build pipeline
-		rescaler_8u_32f->SetInput(importFilter->GetOutput());
-		filter->SetInput(rescaler_8u_32f->GetOutput());
-		rescaler_32f_8u->SetInput(filter->GetOutput());
-		writer->SetInput(rescaler_32f_8u->GetOutput());
+		filter->SetInput(importFilter->GetOutput());
+		writer->SetInput(filter->GetOutput());
 
 		//------------------------------------------------------------------
 		//update the pixel value
-		if (menu_name == QObject::tr("ITK GradientAnisotropicDiffusion Filter ..."))
+		if (menu_name == QObject::tr("ITK Mean Filter ..."))
 		{
-			ITKGradientAnisotropicDiffusionDialog d(p4DImage, parent);
+			ITKMeanFilterDialog d(p4DImage, parent);
 
 			if (d.exec() != QDialog::Accepted)
 			{
@@ -152,7 +131,7 @@ public:
 
 		//------------------------------------------------------------------
 		typedef itk::ImageRegionConstIterator<ImageType_input> IteratorType;
-		IteratorType it(rescaler_32f_8u->GetOutput(), rescaler_32f_8u->GetOutput()->GetRequestedRegion());
+		IteratorType it(filter->GetOutput(), filter->GetOutput()->GetRequestedRegion());
 		it.GoToBegin();
 
 		if(!globalSetting.b_plugin_dispResInNewWindow)
@@ -197,7 +176,7 @@ public:
 #define EXECUTE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
-	ITKGradientAnisotropicDiffusionSpecializaed< c_pixel_type > runner; \
+	ITKMeanFilterSpecializaed< c_pixel_type > runner; \
     runner.Execute(  menu_name, callback, parent ); \
     break; \
     } 
@@ -216,7 +195,7 @@ public:
         }  \
       }  
 
-void ITKGradientAnisotropicDiffusionPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+void ITKMeanFilterPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
 	v3dhandle curwin = callback.currentImageWindow();
 	if (!curwin)
