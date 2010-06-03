@@ -1,5 +1,6 @@
 
 CONFIGURE_V3D_PLUGIN(Smoothing MeanFilter)
+CONFIGURE_V3D_PLUGIN(Smoothing MedianFilter)
 
 CONFIGURE_V3D_PLUGIN(Smoothing GradientAnisotropicDiffusion)
 CONFIGURE_V3D_PLUGIN(Smoothing CurvatureAnisotropicDiffusion)
