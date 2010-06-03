@@ -1,3 +1,4 @@
 
 CONFIGURE_V3D_PLUGIN(Thresholding OtsuThreshold)
+CONFIGURE_V3D_PLUGIN(Thresholding KappaSigmaThreshold)
 
