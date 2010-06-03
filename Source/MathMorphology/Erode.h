@@ -16,7 +16,7 @@ class ErodePlugin : public QObject, public V3DPluginInterface
 
 public:
 	ErodePlugin() {}
-  QStringList menulist() const;
+	QStringList menulist() const;
 	QStringList funclist() const;
 
 	void domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent);
@@ -26,41 +26,6 @@ public:
 
 };
 
-class ErodeDialog : public QDialog
-{
-    Q_OBJECT
-	
-public:
-    ErodeDialog(Image4DSimple *p4DImage, QWidget *parent)
-	{
-		if (! p4DImage) return;
-		
-		printf("Passing data to data1d\n");
-	
-		ok     = new QPushButton("OK");
-		cancel = new QPushButton("Cancel");
-		
-		gridLayout = new QGridLayout();
-		
-	  gridLayout->addWidget(cancel, 0,0); gridLayout->addWidget(ok, 0,1);
-		setLayout(gridLayout);
-		setWindowTitle(QString("Erode"));
-		
-		connect(ok,     SIGNAL(clicked()), this, SLOT(accept()));
-		connect(cancel, SIGNAL(clicked()), this, SLOT(reject()));
-	}
-	
-	~ErodeDialog(){}
-	
-public slots:
-
-		
-public:
-	QGridLayout *gridLayout;
-	
-	QPushButton* ok;
-	QPushButton* cancel;
-};
 
 
 
