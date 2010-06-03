@@ -144,6 +144,10 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
     getChannelDataForProcessingFromGlobalSetting( this->m_4DImage, *(this->m_V3DPluginCallback) );
 
   const unsigned int numberOfChannelsToProcess = imageList.size();
+  if (numberOfChannelsToProcess<=0)
+    return;
+
+  this->SetupParameters();
 
   for( unsigned int channel = 0; channel < numberOfChannelsToProcess; channel++ )
     {

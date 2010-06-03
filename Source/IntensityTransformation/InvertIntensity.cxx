@@ -63,6 +63,10 @@ public:
 
     this->SetOutputImage( filter->GetOutput() );
     }
+	
+  virtual void SetupParameters()
+	{
+	}
 };
 
 
