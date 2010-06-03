@@ -84,18 +84,69 @@ public:
 };
 
 
+inline QList<V3DLONG> getChannelListForProcessingFromGlobalSetting( V3DLONG nc, V3DPluginCallback & callback ) //nc is the # of channels in an image
+{
+	QList<V3DLONG> chlist;
+	if ( nc<=0 )
+	{
+		v3d_msg(QString("Invalid # channels parameter to getChannelListForProcessingFromGlobalSetting()."));
+		return chlist;
+	}
+	
+	//get the list of channels for processing
+	
+	int chano_preference = callback.getGlobalSetting().iChannel_for_plugin;
+	if ( chano_preference >= nc )
+	{
+		v3d_msg(QString("The global setting uses a channel id that is bigger than the # of channels of this image. Apply to processing to the last channel of this image."));
+		chano_preference = nc-1;
+	}
+	
+	if (chano_preference < 0)
+	{
+		for (V3DLONG i=0;i<nc;i++) 
+			chlist << i;
+	}
+	else {
+		chlist << chano_preference;
+	}
+	
+	return chlist;	
+}
+
+
+inline QList<V3D_Image3DBasic> getChannelDataForProcessingFromGlobalSetting( Image4DSimple * p, V3DPluginCallback & callback)
+{
+	QList<V3D_Image3DBasic> dlist;
+	if ( !p || !p->valid() )
+	{
+		v3d_msg(QString("Invalid inputs to getChannelDataForProcessingFromGlobalSetting(). Don't output the plugin results.\n"));
+		return dlist;
+	}
+	
+	//get the list of channels for processing
+	QList<V3DLONG> chlist = getChannelListForProcessingFromGlobalSetting( p->getCDim(), callback );
+	for (V3DLONG i; i<chlist.size(); i++)
+	{
+		V3D_Image3DBasic v;
+		v.setData(p, chlist.at(i));
+		dlist << v;
+	}
+	return dlist;
+}
+
 template <class T> bool setPluginOutputAndDisplayUsingGlobalSetting(T * pluginoutputimg1d, V3DLONG sz0, V3DLONG sz1, V3DLONG sz2, V3DLONG sz3, V3DPluginCallback & callback)
 {
 	if (!pluginoutputimg1d || sz0<=0 || sz1<=0 || sz2<=0 || sz3<=0 )
 	{
-		v3d_msg((char *)("Invalid inputs to setPluginOutputAndDisplayUsingGlobalSetting(). Don't output the plugin results.\n"));
+		v3d_msg(QString("Invalid inputs to setPluginOutputAndDisplayUsingGlobalSetting(). Don't output the plugin results.\n"));
 		return false;
 	}
 	
 	V3DLONG totalunits = sz0*sz1*sz2*sz3;
 	if (totalunits<=0) 
 	{
-		v3d_msg("Overflow of the *long* data type. Don't output the plugin results.\n");
+		v3d_msg(QString("Overflow of the *long* data type. Don't output the plugin results.\n"));
 		return false;
 	}
 	

@@ -78,7 +78,13 @@ public:
 		}
 	}
 	V3DLONG getTotalBytes() {return getUnitBytes()*sz0*sz1*sz2*sz3;}
+	unsigned char * getRawDataAtChannel(V3DLONG cid) 
+	{
+		V3DLONG myid = cid; if (myid<0) myid=0; else if (myid>=sz3) myid = sz3-1; 
+		return data1d + myid*getTotalUnitNumberPerChannel()*getUnitBytes();
+	}
 	int isSuccess() {if (sz0<=0 || sz1<=0 || sz2<=0 || sz3<=0) b_error=1; return !b_error;}
+	bool valid() {return (!data1d || sz0<=0 || sz1<=0 || sz2<=0 || sz3<=0 || b_error || (datatype!=V3D_UINT8 && datatype!=V3D_UINT16 && datatype!=V3D_FLOAT32)) ?  false : true; }
 
 	void setXDim(V3DLONG v) {sz0=v;}
 	void setYDim(V3DLONG v) {sz1=v;}
@@ -199,6 +205,28 @@ for (V3DLONG c = 0; c < p.sc; c++) \
 for (V3DLONG z = 0; z < p.sz; z++) \
 for (V3DLONG y = 0; y < p.sy; y++) \
 for (V3DLONG x = 0; x < p.sx; x++)
+
+
+//The following struct is provided for convenience for working with a channel of an Image4DSimple instance in some cases
+struct V3D_Image3DBasic
+{
+	unsigned char * data1d;
+	V3DLONG sz0, sz1, sz2;
+	ImagePixelType datatype;
+	V3DLONG cid; //the color channel in the original 4D image
+	
+	V3D_Image3DBasic() {data1d=0; sz0=sz1=sz2=0; datatype=V3D_UNKNOWN; cid=-1;}
+	bool setData(Image4DSimple *p, V3DLONG myid)
+	{
+		if (!p || !p->valid() || myid<0 || myid>=p->getCDim())
+			return false;
+		cid = myid; 
+		data1d = p->getRawDataAtChannel(cid);
+		sz0 = p->getXDim(); sz1 = p->getYDim(); sz2 = p->getZDim();  
+		datatype = p->getDatatype();
+		return true;
+	}
+};
 
 
 #endif /* _BASIC_4DIMAGE_H_ */
