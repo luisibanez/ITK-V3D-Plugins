@@ -205,7 +205,7 @@ public:
 			
 			const double sigma = 0.5; // GradientMagnitudeRecursiveGaussianImageFilter
 			
-			const double alpha =  -6; // SigmoidImageFilter
+			const double alpha =  -1; // SigmoidImageFilter
 			const double beta  =  20;
 			
 			//consider multiple channels
