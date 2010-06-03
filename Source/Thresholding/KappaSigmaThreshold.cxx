@@ -98,7 +98,7 @@ public:
 		filter->SetOutsideValue( outsideValue );
 		filter->SetInsideValue( insideValue );
 		
-		float sigmaFactor				=1;
+		float sigmaFactor				=2;
 		unsigned int numberofIterations	=2;
 		filter->SetSigmaFactor( sigmaFactor );
 		filter->SetNumberOfIterations( numberofIterations );
