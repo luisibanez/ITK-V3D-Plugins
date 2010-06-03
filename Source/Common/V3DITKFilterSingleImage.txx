@@ -151,11 +151,15 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
     {
     std::cout << "channel = " << channel << std::endl;
 
-    this->TransferInput( inputImageList.at(channel), x1, x2, y1, y2, z1, z2 );
+    const V3D_Image3DBasic inputImage = inputImageList.at(channel);
+
+    this->TransferInput( inputImage, x1, x2, y1, y2, z1, z2 );
 
     this->ComputeOneRegion();
 
     V3D_Image3DBasic outputImage;
+
+    outputImage.cid = inputImage.cid;
 
     this->TransferOutput( outputImage );
 
@@ -202,6 +206,32 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   OutputPixelType * output1d = container->GetImportPointer();
   
   outputImage.data1d = reinterpret_cast< unsigned char * >( output1d );
+
+  typename Output3DImageType::RegionType region = this->m_Output3DImage->GetBufferedRegion();
+
+  typename Output3DImageType::SizeType size = region.GetSize();
+
+  outputImage.sz0 = size[0];
+  outputImage.sz1 = size[1];
+  outputImage.sz2 = size[2];
+
+
+  // 
+  //  Set the pixel type id.
+  //
+  if( typeid(OutputPixelType) == typeid( unsigned char ) )
+    {
+    outputImage.datatype = V3D_UINT8;
+    }
+  else if ( typeid(OutputPixelType) == typeid( short int ) )
+    {
+    outputImage.datatype = V3D_UINT16;
+    }
+  else if ( typeid(OutputPixelType) == typeid( float ) )
+    {
+    outputImage.datatype = V3D_FLOAT32;
+    }
+
 
   //
   //  FIXME: Remove the lines below, once we have setup the 
