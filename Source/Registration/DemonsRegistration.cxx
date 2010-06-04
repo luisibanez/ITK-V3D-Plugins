@@ -66,13 +66,17 @@ public:
 
     void Execute(const itk::Object * object, const itk::EventObject & event)
       {
+      static int iteration = 0;
+
       const RegistrationFilterType * filter = 
         dynamic_cast< const RegistrationFilterType * >( object );
       if( !(itk::IterationEvent().CheckEvent( &event )) )
         {
         return;
         }
-      std::cout << filter->GetMetric() << std::endl;
+      std::cout << "Iteration: " << iteration;
+      std::cout << "  Metric : " << filter->GetMetric();
+      std::cout << "  RMS Change: " << filter->GetRMSChange() << std::endl;
       }
   };
 
@@ -156,9 +160,12 @@ public:
     filter->SetFixedImage( importFilter_fix->GetOutput() );
     filter->SetMovingImage( importFilter_mov->GetOutput() );
 
-
+    //
+    //  These parameters should be provided by the Qt Dialog
+    //
     filter->SetNumberOfIterations( 50 );
     filter->SetStandardDeviations( 1.0 );
+    filter->SetMaximumRMSError( 0.01 );
 
     typename CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
 
