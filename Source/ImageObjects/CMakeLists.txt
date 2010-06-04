@@ -1,3 +1,5 @@
 
-CONFIGURE_V3D_PLUGIN(ImageObjects ConnectedComponents)
+SET(PLUGIN_GROUP_NAME "ImageObjects")
+
+CONFIGURE_V3D_PLUGIN(ConnectedComponents)
 
