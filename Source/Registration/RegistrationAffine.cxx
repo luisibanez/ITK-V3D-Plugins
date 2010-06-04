@@ -53,9 +53,9 @@ public:
   typedef   const OptimizerType *                  OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
-    {
-    Execute( (const itk::Object *)caller, event);
-    }
+	{
+	Execute( (const itk::Object *)caller, event);
+	}
 
   void Execute(const itk::Object * object, const itk::EventObject & event)
     {
@@ -66,19 +66,7 @@ public:
       }
       std::cout << optimizer->GetCurrentIteration() << "   ";
       std::cout << optimizer->GetValue() << "   ";
-      std::cout << optimizer->GetCurrentPosition();
-
-      // Print the angle for the trace plot
-      vnl_matrix<double> p(2, 2);
-      p[0][0] = (double) optimizer->GetCurrentPosition()[0];
-      p[0][1] = (double) optimizer->GetCurrentPosition()[1];
-      p[1][0] = (double) optimizer->GetCurrentPosition()[2];
-      p[1][1] = (double) optimizer->GetCurrentPosition()[3];
-      vnl_svd<double> svd(p);
-      vnl_matrix<double> r(2, 2);
-      r = svd.U() * vnl_transpose(svd.V());
-      double angle = vcl_asin(r[1][0]);
-      std::cout << " AffineAngle: " << angle * 180.0 / vnl_math::pi << std::endl;
+      std::cout << optimizer->GetCurrentPosition() << std::endl;
     }
 };
 
@@ -96,6 +84,7 @@ public:
 			v3d_msg(QObject::tr("Registration need at least two images!"));
 			return;
 		}
+		v3dhandle oldwin = wndlist[1];
 		Image4DSimple* p4DImage_fix=callback.getImage(wndlist[0]);
 		Image4DSimple* p4DImage_mov=callback.getImage(wndlist[1]);
 		if(p4DImage_fix->getXDim()!=p4DImage_mov->getXDim() ||
@@ -107,9 +96,25 @@ public:
 			return;
 		}
 
+		//set dimention info
+		const unsigned int Dimension = 3;
+//		long nz=p4DImage_fix->getZDim();
+//		if(nz==1)
+//		{
+//			const unsigned int Dimension = 2;
+//		}
+//		else if(nz>4)
+//		{
+//			const unsigned int Dimension = 3;
+//		}
+//		else
+//		{
+//			v3d_msg(QObject::tr("For 3D image, need pixles along z dir big than 4!"));
+//			return;
+//		}
+
 		//get global setting
 		V3D_GlobalSetting globalSetting = callback.getGlobalSetting();
-		const unsigned int Dimension = 2;
 	    int channelToFilter = globalSetting.iChannel_for_plugin;
 	    if( channelToFilter >= p4DImage_fix->getCDim())
 		{
@@ -222,18 +227,36 @@ public:
 		typedef OptimizerType::ScalesType OptimizerScalesType;
 		OptimizerScalesType optimizerScales( transform->GetNumberOfParameters() );
 		double translationScale = 1.0 / 1000.0;
-		optimizerScales[0] =  1.0;
-		optimizerScales[1] =  1.0;
-		optimizerScales[2] =  1.0;
-		optimizerScales[3] =  1.0;
-		optimizerScales[4] =  translationScale;
-		optimizerScales[5] =  translationScale;
+		if(Dimension==2)
+		{
+			optimizerScales[0] =  1.0;
+			optimizerScales[1] =  1.0;
+			optimizerScales[2] =  1.0;
+			optimizerScales[3] =  1.0;
+			optimizerScales[4] =  translationScale;
+			optimizerScales[5] =  translationScale;
+		}
+		else if(Dimension==3)
+		{
+			optimizerScales[0] =  1.0;
+			optimizerScales[1] =  1.0;
+			optimizerScales[2] =  1.0;
+			optimizerScales[3] =  1.0;
+			optimizerScales[4] =  1.0;
+			optimizerScales[5] =  1.0;
+			optimizerScales[6] =  1.0;
+			optimizerScales[7] =  1.0;
+			optimizerScales[8] =  1.0;
+			optimizerScales[9]  =  translationScale;
+			optimizerScales[10] =  translationScale;
+			optimizerScales[11] =  translationScale;
+		}
 		optimizer->SetScales( optimizerScales );
 
 		double steplength = 0.1;
 		unsigned int maxNumberOfIterations = 300;
 		optimizer->SetMaximumStepLength( steplength );
-		optimizer->SetMinimumStepLength( 0.0001 );
+		optimizer->SetMinimumStepLength( 0.001 );
 		optimizer->SetNumberOfIterations( maxNumberOfIterations );
 		optimizer->MinimizeOn();
 
@@ -297,110 +320,48 @@ public:
 		resampler->SetOutputDirection( fixedImage->GetDirection() );
 		resampler->SetDefaultPixelValue( 0 );
 
-		// cast datatype to original one for
-		typedef  unsigned char  OutputPixelType;
-		typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
-		typedef itk::CastImageFilter<ImageType_mid,OutputImageType > CastFilterType;
-		CastFilterType::Pointer  caster =  CastFilterType::New();
+		// cast datatype to original one for write/display
+		typedef itk::CastImageFilter<ImageType_mid,ImageType_input > CastFilterType;
+		typename CastFilterType::Pointer  caster =  CastFilterType::New();
 
-		typedef itk::ImageFileWriter< OutputImageType >  WriterType;
-		WriterType::Pointer      writer =  WriterType::New();
+		// write the warped moving image to disk
+		typedef itk::ImageFileWriter< ImageType_input >  WriterType;
+		typename WriterType::Pointer      writer =  WriterType::New();
 		writer->SetFileName("output.tif");
 		printf("save output.tif complete\n");
 
 		caster->SetInput( resampler->GetOutput() );
 		writer->SetInput( caster->GetOutput()   );
-		writer->Update();
 
-//		//------------------------------------------------------------------
-//		//setup filter: Gradient Anisotropic Diffusion
-//		typedef itk::GradientAnisotropicDiffusionImageFilter<ImageType_mid,ImageType_mid> AniFilterType;
-//		typename AniFilterType::Pointer filter = AniFilterType::New();
-//
-//		//set paras
-//		unsigned int numberOfIterations	=5;
-//		double       timeStep			=0.2;
-//		const double conductance		=3.0;
-//		filter->SetNumberOfIterations( numberOfIterations );
-//		filter->SetTimeStep( timeStep );
-//		filter->SetConductanceParameter( conductance );
-//
-//		//------------------------------------------------------------------
-//		//setup filter: cast datatype back to PixelType for output
-//		typedef itk::RescaleIntensityImageFilter<ImageType_mid,ImageType_input> RescaleFilterType_output;
-//
-//		typename RescaleFilterType_output::Pointer rescaler_32f_8u = RescaleFilterType_output::New();
-//		rescaler_32f_8u->SetOutputMinimum(   0 );
-//		rescaler_32f_8u->SetOutputMaximum( 255 );
-//
-//		//------------------------------------------------------------------
-//		//setup filter: write processed image to disk
-//		typedef itk::ImageFileWriter< ImageType_input >  WriterType;
-//		typename WriterType::Pointer writer = WriterType::New();
-//		writer->SetFileName("output.tif");
-//
-//		//------------------------------------------------------------------
-//		//build pipeline
-//		rescaler_8u_32f->SetInput(importFilter->GetOutput());
-//		filter->SetInput(rescaler_8u_32f->GetOutput());
-//		rescaler_32f_8u->SetInput(filter->GetOutput());
-//		writer->SetInput(rescaler_32f_8u->GetOutput());
-//
-//		//------------------------------------------------------------------
-//		//update the pixel value
-//		if (menu_name == QObject::tr("ITK Affine Registration..."))
-//		{
-//			ITKRegistrationAffineDialog d(p4DImage, parent);
-//
-//			if (d.exec() != QDialog::Accepted)
-//			{
-//				return;
-//			}
-//			else
-//			{
-//				try
-//				{
-//					writer->Update();
-//				}
-//				catch(itk::ExceptionObject &excp)
-//				{
-//					std::cerr<<excp<<std::endl;
-//					return;
-//				}
-//			}
-//
-//		}
-//		else
-//		{
-//			return;
-//		}
-//
-//		//------------------------------------------------------------------
-//		typedef itk::ImageRegionConstIterator<ImageType_input> IteratorType;
-//		IteratorType it(rescaler_32f_8u->GetOutput(), rescaler_32f_8u->GetOutput()->GetRequestedRegion());
-//		it.GoToBegin();
-//
+		caster->Update();
+//		writer->Update();
+
+		//------------------------------------------------------------------
+		typedef itk::ImageRegionConstIterator<ImageType_input> IteratorType;
+		IteratorType it(caster->GetOutput(), caster->GetOutput()->GetRequestedRegion());
+		it.GoToBegin();
+
 //		if(!globalSetting.b_plugin_dispResInNewWindow)
 //		{
-//			printf("display results in a new window\n");
-//			//copy data back to V3D
-//			while(!it.IsAtEnd())
-//			{
-//				*data1d=it.Get();
-//				++it;
-//				++data1d;
-//			}
-//
-//			callback.setImageName(oldwin, callback.getImageName(oldwin)+"_new");
-//			callback.updateImageWindow(oldwin);
+			printf("display results in a new window\n");
+			//copy data back to V3D
+			while(!it.IsAtEnd())
+			{
+				*data1d_mov=it.Get();
+				++it;
+				++data1d_mov;
+			}
+
+			callback.setImageName(oldwin, callback.getImageName(oldwin)+"_new");
+			callback.updateImageWindow(oldwin);
 //		}
 //		else
 //		{
 //			printf("display results in current window\n");
-//			long N = p4DImage->getTotalBytes();
+//			long N = p4DImage_mov->getTotalBytes();
 //			unsigned char* newdata1d = new unsigned char[N];
 //			Image4DSimple tmp;
-//			tmp.setData(newdata1d, p4DImage->sz0,p4DImage->sz1,p4DImage->sz2,p4DImage->sz3, p4DImage->datatype);
+//			tmp.setData(newdata1d, p4DImage_mov->sz0,p4DImage_mov->sz1,p4DImage_mov->sz2,p4DImage_mov->sz3, p4DImage_mov->datatype);
 //
 //			//copy data back to the new image
 //			while(!it.IsAtEnd())

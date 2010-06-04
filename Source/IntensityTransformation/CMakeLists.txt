@@ -1,4 +1,6 @@
 
-CONFIGURE_V3D_PLUGIN(IntensityTransformations InvertIntensity)
-CONFIGURE_V3D_PLUGIN(IntensityTransformations Sigmoid)
+SET(PLUGIN_GROUP_NAME "IntensityTransformations")
+
+CONFIGURE_V3D_PLUGIN(InvertIntensity)
+CONFIGURE_V3D_PLUGIN(Sigmoid)
 
