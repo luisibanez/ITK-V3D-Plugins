@@ -222,17 +222,17 @@ public:
 					diffusion->SetTimeStep(0.05);
 					diffusion->SetConductanceParameter(1.0);
 					
-					cannySegmentation->SetAdvectionScaling( 0.5 );
+					cannySegmentation->SetAdvectionScaling( 10.0 );
 					cannySegmentation->SetCurvatureScaling( 1.0 );
 					cannySegmentation->SetPropagationScaling( 0.0 );
 					
 					cannySegmentation->SetMaximumRMSError( 0.01 );
 					cannySegmentation->SetNumberOfIterations( 20 );
 					
-					cannySegmentation->SetThreshold( 100 );
-					cannySegmentation->SetVariance( 100 );
+					cannySegmentation->SetThreshold( 7.0 );
+					cannySegmentation->SetVariance( 0.1 );
 					
-					cannySegmentation->SetIsoSurfaceValue( 0 );
+					cannySegmentation->SetIsoSurfaceValue( 127.5 );
 					
 					//thresholdSegmentation
 					cannySegmentation->GetOutput()->GetPixelContainer()->SetImportPointer( p, pagesz, filterWillDeleteTheInputBuffer);
