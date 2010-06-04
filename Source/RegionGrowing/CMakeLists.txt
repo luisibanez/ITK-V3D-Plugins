@@ -1,0 +1,4 @@
+
+CONFIGURE_V3D_PLUGIN(RegionGrowing ITKConfidenceConnected)
+CONFIGURE_V3D_PLUGIN(RegionGrowing ITKConnectedThreshold)
+CONFIGURE_V3D_PLUGIN(RegionGrowing ITKIsolatedConnected)
