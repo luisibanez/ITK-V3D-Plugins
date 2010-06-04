@@ -2,5 +2,5 @@
 CONFIGURE_V3D_PLUGIN(LevelSets ITKFastMarching)
 CONFIGURE_V3D_PLUGIN(LevelSets ITKShapeDetection)
 CONFIGURE_V3D_PLUGIN(LevelSets ITKGeodesicActiveContour)
-#CONFIGURE_V3D_PLUGIN(LevelSets ITKThresholdSegmentation)
-#CONFIGURE_V3D_PLUGIN(LevelSets ITKCannySegmentation)
+CONFIGURE_V3D_PLUGIN(LevelSets ITKThresholdSegmentation)
+CONFIGURE_V3D_PLUGIN(LevelSets ITKCannySegmentation)
