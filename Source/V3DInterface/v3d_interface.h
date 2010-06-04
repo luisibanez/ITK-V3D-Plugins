@@ -270,10 +270,9 @@ inline bool assembleProcessedChannels2Image4DClass(QList<V3D_Image3DBasic> & pd,
 	for (i=0;i<mysz3;i++)
 	{
 		unsigned char *psrc = pd[i].data1d;
-		unsigned char *psrc_end = pd[i].data1d + nchanbytes;
 		unsigned char *pdst = pout + nchanbytes * i;
-		while (psrc < psrc_end)
-			*(++pdst) = *(++psrc);
+		for (V3DLONG j=0; j<nchanbytes; j++)
+			pdst[j] = psrc[j];
 	}
 	
 	//now set V3D display
