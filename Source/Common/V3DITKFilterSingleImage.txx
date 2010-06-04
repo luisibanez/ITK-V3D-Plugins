@@ -116,8 +116,6 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   this->m_Impor3DFilter->SetImportPointer( inputBuffer, numberOfPixels, importImageFilterWillOwnTheBuffer );
 
   this->m_Impor3DFilter->Update();
-
-  this->m_Impor3DFilter->GetOutput()->Print( std::cout );
 }
       
 
@@ -149,8 +147,6 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 
   for( unsigned int channel = 0; channel < numberOfChannelsToProcess; channel++ )
     {
-    std::cout << "channel = " << channel << std::endl;
-
     const V3D_Image3DBasic inputImage = inputImageList.at(channel);
 
     this->TransferInput( inputImage, x1, x2, y1, y2, z1, z2 );
@@ -166,10 +162,13 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
     outputImageList.append( outputImage );
     }
 
-  //
-  // FIXME: Call here a v3d function that passes the outputImageList back to
-  // v3d.
-  //
+  bool transferResult =  assembleProcessedChannels2Image4DClass( outputImageList, *(this->m_V3DPluginCallback) );
+    
+  if( !transferResult )
+    {
+    v3d_msg(QObject::tr("Error while transfering output image."));
+    }
+
 }
 
 
@@ -232,24 +231,6 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
     outputImage.datatype = V3D_FLOAT32;
     }
 
-
-  //
-  //  FIXME: Remove the lines below, once we have setup the 
-  //         process for passing the QList<V3D_Image3DBasic> back to v3d.
-  //
-  bool transferResult = setPluginOutputAndDisplayUsingGlobalSetting(
-    output1d, 
-    this->m_NumberOfPixelsAlongX,
-    this->m_NumberOfPixelsAlongY,
-    this->m_NumberOfPixelsAlongZ,
-    1,
-    *(this->m_V3DPluginCallback)
-    );
-
-  if( !transferResult )
-    {
-    v3d_msg(QObject::tr("Error while transfering output image."));
-    }
 }
 
 #endif
