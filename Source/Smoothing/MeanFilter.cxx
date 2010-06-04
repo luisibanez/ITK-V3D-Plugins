@@ -87,6 +87,7 @@ public:
 		typename ImageType_input::SizeType indexRadius;
 		indexRadius[0] = 1; // radius along x
 		indexRadius[1] = 1; // radius along y
+		indexRadius[2] = 1; // radius along y
 		filter->SetRadius( indexRadius );
 
 		//------------------------------------------------------------------
