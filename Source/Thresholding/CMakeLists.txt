@@ -1,4 +1,5 @@
+SET(PLUGIN_GROUP_NAME "Thresholding")
 
-CONFIGURE_V3D_PLUGIN(Thresholding OtsuThreshold)
-CONFIGURE_V3D_PLUGIN(Thresholding KappaSigmaThreshold)
+CONFIGURE_V3D_PLUGIN(OtsuThreshold)
+CONFIGURE_V3D_PLUGIN(KappaSigmaThreshold)
 

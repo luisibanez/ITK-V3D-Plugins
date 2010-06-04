@@ -1,9 +1,10 @@
+SET(PLUGIN_GROUP_NAME "Smoothing")
 
-CONFIGURE_V3D_PLUGIN(Smoothing MeanFilter)
-CONFIGURE_V3D_PLUGIN(Smoothing MedianFilter)
-CONFIGURE_V3D_PLUGIN(Smoothing DiscreteGaussianFilter)
+CONFIGURE_V3D_PLUGIN(MeanFilter)
+CONFIGURE_V3D_PLUGIN(MedianFilter)
+CONFIGURE_V3D_PLUGIN(DiscreteGaussianFilter)
 
-CONFIGURE_V3D_PLUGIN(Smoothing GradientAnisotropicDiffusion)
-CONFIGURE_V3D_PLUGIN(Smoothing CurvatureAnisotropicDiffusion)
-CONFIGURE_V3D_PLUGIN(Smoothing MinMaxCurvatureFlow)
-CONFIGURE_V3D_PLUGIN(Smoothing BilateralFilter)
+CONFIGURE_V3D_PLUGIN(GradientAnisotropicDiffusion)
+CONFIGURE_V3D_PLUGIN(CurvatureAnisotropicDiffusion)
+CONFIGURE_V3D_PLUGIN(MinMaxCurvatureFlow)
+CONFIGURE_V3D_PLUGIN(BilateralFilter)

@@ -2,7 +2,12 @@
 #  This file provides the standard configuration
 #  for a generic plugin
 #
-FUNCTION(CONFIGURE_V3D_PLUGIN PLUGIN_GROUP_NAME PLUGIN_NAME)
+#  The variable PLUGIN_GROUP_NAME is expected to
+#  be pre-defined in every directory from where
+#  you call this CONFIGURE_V3D_PLUGIN function.
+#
+#
+FUNCTION(CONFIGURE_V3D_PLUGIN PLUGIN_NAME)
 
 INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR} )
 
