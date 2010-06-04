@@ -1,4 +1,12 @@
+#include <QtGui>
+
+#include <math.h>
+#include <stdlib.h>
+
 #include "InvertIntensity.h"
+#include "V3DITKFilterSingleImage.h"
+
+// ITK Header Files
 #include "itkInvertIntensityImageFilter.h"
 
 
@@ -6,6 +14,19 @@
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
 Q_EXPORT_PLUGIN2(InvertIntensity, InvertIntensityPlugin)
+
+
+QStringList InvertIntensityPlugin::menulist() const
+{
+    return QStringList() << QObject::tr("ITK Invert Intensity")
+						<< QObject::tr("about this plugin");
+}
+
+QStringList InvertIntensityPlugin::funclist() const
+{
+    return QStringList();
+}
+
 
 template <typename TPixelType>
 class InvertIntensitySpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType >
@@ -17,8 +38,14 @@ public:
   virtual ~InvertIntensitySpecialized() {};
 
   
+  void Execute(const QString &menu_name, QWidget *parent)
+    {
+    this->Compute(); 
+    }
+
   virtual void ComputeOneRegion()
     {
+    std::cout << "ComputeOneRegion() " << std::endl;
     typedef TPixelType  PixelType;
 
     typedef typename Superclass::Input3DImageType   ImageType;
@@ -27,8 +54,12 @@ public:
     typename InvertFilterType::Pointer filter = InvertFilterType::New();
 
     filter->SetInput( this->GetInput3DImage() );
+
     filter->InPlaceOn();
+    
+    std::cout << "Before filter->Update()" << std::endl;
     filter->Update();
+    std::cout << "After filter->Update()" << std::endl;
 
     this->SetOutputImage( filter->GetOutput() );
     }
@@ -38,6 +69,34 @@ public:
 	}
 };
 
+
+#define EXECUTE( v3d_pixel_type, c_pixel_type ) \
+  case v3d_pixel_type: \
+    { \
+    InvertIntensitySpecialized< c_pixel_type > runner( &callback ); \
+    runner.Execute( menu_name, parent ); \
+    break; \
+    } 
+
+#define EXECUTE_ALL_PIXEL_TYPES \
+    ImagePixelType pixelType = p4DImage->getDatatype(); \
+    switch( pixelType )  \
+      {  \
+      EXECUTE( V3D_UINT8, unsigned char );  \
+      EXECUTE( V3D_UINT16, unsigned short int );  \
+      EXECUTE( V3D_FLOAT32, float );  \
+      case V3D_UNKNOWN:  \
+        {  \
+        }  \
+      }  
+ 
+void InvertIntensityPlugin::dofunc(const QString & func_name,
+		const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
+{
+  // empty by now
+}
+
+
 void InvertIntensityPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
   if (menu_name == QObject::tr("about this plugin"))
@@ -46,9 +105,20 @@ void InvertIntensityPlugin::domenu(const QString & menu_name, V3DPluginCallback 
     return;
     }
 
-  if( this->Initialize( callback ) )
+	v3dhandle curwin = callback.currentImageWindow();
+	if (!curwin)
     {
-    EXECUTE_ALL_PIXEL_TYPES( InvertIntensity );
+		v3d_msg(tr("You don't have any image open in the main window."));
+		return;
     }
+
+	Image4DSimple *p4DImage = callback.getImage(curwin);
+  if (! p4DImage)
+    {
+    v3d_msg(tr("The input image is null."));
+    return;
+    }
+
+  EXECUTE_ALL_PIXEL_TYPES; 
 }
 

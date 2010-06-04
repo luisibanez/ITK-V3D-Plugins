@@ -2,18 +2,22 @@
 #define __InvertIntensity_H__
 
 
-#include <V3DITKPluginBaseSingleImage.h>
+#include <QtGui>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <v3d_interface.h>
 
-class InvertIntensityPlugin : public V3DITKPluginBaseSingleImage
+class InvertIntensityPlugin : public QObject, public V3DPluginInterface
 {
     Q_OBJECT
-//    Q_INTERFACES(V3DITKPluginBaseSingleImage)
+    Q_INTERFACES(V3DPluginInterface)
 
 public:
-	InvertIntensityPlugin()
-    {
-    this->SetPluginName("InvertIntensity");
-    }
+	InvertIntensityPlugin() {}
+  QStringList menulist() const;
+	QStringList funclist() const;
 
 	void domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent);
 
