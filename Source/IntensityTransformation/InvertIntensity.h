@@ -2,14 +2,9 @@
 #define __InvertIntensity_H__
 
 
-#include <QtGui>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <v3d_interface.h>
+#include <V3DITKPluginBaseSingleImage.h>
 
-class InvertIntensityPlugin : public QObject, public V3DPluginInterface
+class InvertIntensityPlugin : public V3DITKPluginBaseSingleImage
 {
     Q_OBJECT
     Q_INTERFACES(V3DPluginInterface)
