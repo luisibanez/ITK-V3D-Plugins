@@ -11,6 +11,10 @@ V3DITKPluginBaseSingleImage::V3DITKPluginBaseSingleImage()
 {
 }
 
+V3DITKPluginBaseSingleImage::~V3DITKPluginBaseSingleImage()
+{
+}
+
 void V3DITKPluginBaseSingleImage::SetPluginName( const char * name )
 {
   this->m_PluginName = name;
