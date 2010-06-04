@@ -109,7 +109,19 @@ public:
 
 
     // RUN DEMONS FILTER HERE
+    typedef itk::Vector< float, Dimension >    VectorPixelType;
+    typedef itk::Image<  VectorPixelType, Dimension > DeformationFieldType;
+    typedef itk::DemonsRegistrationFilter<
+      ImageType_input,
+      ImageType_input,
+      DeformationFieldType>   RegistrationFilterType;
 
+    typename RegistrationFilterType::Pointer filter = RegistrationFilterType::New();
+
+    filter->SetFixedImage( importFilter_fix->GetOutput() );
+    filter->SetMovingImage( importFilter_mov->GetOutput() );
+
+    filter->Update();
 
 #ifdef MANUALLY_COPYING_IMAGE_BACK_TO_V3D
 		//------------------------------------------------------------------
