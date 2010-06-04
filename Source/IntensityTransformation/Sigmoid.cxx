@@ -31,10 +31,18 @@ QStringList SigmoidPlugin::funclist() const
 template <typename TPixelType>
 class SigmoidSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType >
 {
-public:
-  typedef V3DITKFilterSingleImage< TPixelType, TPixelType >    Superclass;
+  typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
+  typedef typename Superclass::Input3DImageType               ImageType;
 
-  SigmoidSpecialized( V3DPluginCallback * callback ): Superclass(callback) {}
+  typedef itk::SigmoidImageFilter< ImageType, ImageType > FilterType;
+
+public:
+
+  SigmoidSpecialized( V3DPluginCallback * callback ): Superclass(callback)
+    {
+    this->m_Filter = FilterType::New();
+    }
+
   virtual ~SigmoidSpecialized() {};
 
   
@@ -45,35 +53,38 @@ public:
 
   virtual void ComputeOneRegion()
     {
-    std::cout << "ComputeOneRegion() " << std::endl;
-    typedef TPixelType  PixelType;
 
-    typedef typename Superclass::Input3DImageType   ImageType;
-
-    typedef itk::SigmoidImageFilter< ImageType, ImageType > InvertFilterType;
-    typename InvertFilterType::Pointer filter = InvertFilterType::New();
-
-    filter->SetInput( this->GetInput3DImage() );
+    this->m_Filter->SetInput( this->GetInput3DImage() );
 
     if( !this->ShouldGenerateNewWindow() )
       {
-      filter->InPlaceOn();
+      this->m_Filter->InPlaceOn();
       }
     
-    std::cout << "Before filter->Update()" << std::endl;
-    filter->Update();
-    std::cout << "After filter->Update()" << std::endl;
+    this->m_Filter->Update();
 
-    this->SetOutputImage( filter->GetOutput() );
+    this->SetOutputImage( this->m_Filter->GetOutput() );
     }
 	
   virtual void SetupParameters()
-	{
-	}
+  	{
+    //
+    // These values should actually be provided by the Qt Dialog...
+    //
+    this->m_Filter->SetAlpha( 1.0 );
+    this->m_Filter->SetBeta( 128 );
+    this->m_Filter->SetOutputMinimum(   0 );
+    this->m_Filter->SetOutputMaximum( 255 );
+	  }
+
+private:
+
+    typename FilterType::Pointer   m_Filter;
+
 };
 
 
-#define EXECUTE( v3d_pixel_type, c_pixel_type ) \
+#define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
     SigmoidSpecialized< c_pixel_type > runner( &callback ); \
@@ -81,17 +92,6 @@ public:
     break; \
     } 
 
-#define EXECUTE_ALL_PIXEL_TYPES \
-    ImagePixelType pixelType = p4DImage->getDatatype(); \
-    switch( pixelType )  \
-      {  \
-      EXECUTE( V3D_UINT8, unsigned char );  \
-      EXECUTE( V3D_UINT16, unsigned short int );  \
-      EXECUTE( V3D_FLOAT32, float );  \
-      case V3D_UNKNOWN:  \
-        {  \
-        }  \
-      }  
  
 void SigmoidPlugin::dofunc(const QString & func_name,
 		const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
@@ -122,6 +122,6 @@ void SigmoidPlugin::domenu(const QString & menu_name, V3DPluginCallback & callba
     return;
     }
 
-  EXECUTE_ALL_PIXEL_TYPES; 
+  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES; 
 }
 

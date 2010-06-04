@@ -228,7 +228,7 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
     {
     outputImage.datatype = V3D_UINT8;
     }
-  else if ( typeid(OutputPixelType) == typeid( short int ) )
+  else if ( typeid(OutputPixelType) == typeid( unsigned short int ) )
     {
     outputImage.datatype = V3D_UINT16;
     }

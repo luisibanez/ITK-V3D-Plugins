@@ -45,13 +45,12 @@ public:
 
   virtual void ComputeOneRegion()
     {
-    std::cout << "ComputeOneRegion() " << std::endl;
     typedef TPixelType  PixelType;
 
     typedef typename Superclass::Input3DImageType   ImageType;
 
-    typedef itk::InvertIntensityImageFilter< ImageType, ImageType > InvertFilterType;
-    typename InvertFilterType::Pointer filter = InvertFilterType::New();
+    typedef itk::InvertIntensityImageFilter< ImageType, ImageType > FilterType;
+    typename FilterType::Pointer filter = FilterType::New();
 
     filter->SetInput( this->GetInput3DImage() );
 
@@ -60,9 +59,7 @@ public:
       filter->InPlaceOn();
       }
     
-    std::cout << "Before filter->Update()" << std::endl;
     filter->Update();
-    std::cout << "After filter->Update()" << std::endl;
 
     this->SetOutputImage( filter->GetOutput() );
     }
@@ -73,7 +70,7 @@ public:
 };
 
 
-#define EXECUTE( v3d_pixel_type, c_pixel_type ) \
+#define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
     InvertIntensitySpecialized< c_pixel_type > runner( &callback ); \
@@ -81,17 +78,6 @@ public:
     break; \
     } 
 
-#define EXECUTE_ALL_PIXEL_TYPES \
-    ImagePixelType pixelType = p4DImage->getDatatype(); \
-    switch( pixelType )  \
-      {  \
-      EXECUTE( V3D_UINT8, unsigned char );  \
-      EXECUTE( V3D_UINT16, unsigned short int );  \
-      EXECUTE( V3D_FLOAT32, float );  \
-      case V3D_UNKNOWN:  \
-        {  \
-        }  \
-      }  
  
 void InvertIntensityPlugin::dofunc(const QString & func_name,
 		const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
@@ -122,6 +108,6 @@ void InvertIntensityPlugin::domenu(const QString & menu_name, V3DPluginCallback 
     return;
     }
 
-  EXECUTE_ALL_PIXEL_TYPES; 
+  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES; 
 }
 
