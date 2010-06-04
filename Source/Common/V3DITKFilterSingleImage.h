@@ -24,6 +24,8 @@ public:
   V3DITKFilterSingleImage( V3DPluginCallback * callback );
   virtual ~V3DITKFilterSingleImage();
 
+  void Execute(const QString &menu_name, QWidget *parent);
+
 protected:
 
   virtual void Compute();

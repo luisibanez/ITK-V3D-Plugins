@@ -50,6 +50,14 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   std::cout << "Nc = " << this->m_NumberOfChannels     << std::endl;
 }
 
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::Execute(const QString &menu_name, QWidget *parent)
+{
+  this->Compute(); 
+}
+
 
 template <typename TInputPixelType, typename TOutputPixelType>
 const typename V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >::Input2DImageType *

@@ -4,7 +4,7 @@
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-// ?? Q_EXPORT_PLUGIN2(V3DITKCommon, V3DITKPluginBaseSingleImage )
+Q_EXPORT_PLUGIN2(V3DITKCommon, V3DITKPluginBaseSingleImage )
 
 
 V3DITKPluginBaseSingleImage::V3DITKPluginBaseSingleImage()
@@ -37,6 +37,11 @@ void V3DITKPluginBaseSingleImage::dofunc(const QString & func_name,
   // empty by now
 }
 
+
+void V3DITKPluginBaseSingleImage
+::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+{
+}
 
 bool V3DITKPluginBaseSingleImage::Initialize( V3DPluginCallback & callback )
 {

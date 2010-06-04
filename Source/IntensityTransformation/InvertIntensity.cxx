@@ -8,7 +8,7 @@
 Q_EXPORT_PLUGIN2(InvertIntensity, InvertIntensityPlugin)
 
 template <typename TPixelType>
-class InvertIntensitySpecialized : V3DITKFilterSingleImage< TPixelType, TPixelType >
+class InvertIntensitySpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType >
 {
 public:
   typedef V3DITKFilterSingleImage< TPixelType, TPixelType >    Superclass;
@@ -17,11 +17,6 @@ public:
   virtual ~InvertIntensitySpecialized() {};
 
   
-  void Execute(const QString &menu_name, QWidget *parent)
-    {
-    this->Compute(); 
-    }
-
   virtual void ComputeOneRegion()
     {
     typedef TPixelType  PixelType;

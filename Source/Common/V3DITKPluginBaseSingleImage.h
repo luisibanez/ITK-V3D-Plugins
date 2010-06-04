@@ -41,6 +41,7 @@ class V3DITKPluginBaseSingleImage : public QObject, public V3DPluginInterface
 public:
 	V3DITKPluginBaseSingleImage();
 	virtual ~V3DITKPluginBaseSingleImage();
+
 	void SetPluginName( const char * name );
   QStringList menulist() const;
 	QStringList funclist() const;
@@ -48,11 +49,14 @@ public:
 	virtual void dofunc(const QString & func_name,
 			const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent);
 
+	virtual void domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent);
+
   bool Initialize( V3DPluginCallback & callback );
 
 private:
 
   std::string    m_PluginName;
+
 };
 
 #endif
