@@ -7,6 +7,7 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "V3DITKFilterDualImage.h"
 #include "DemonsRegistration.h"
 
 // ITK Header Files
@@ -29,21 +30,22 @@ QStringList ITKDemonsRegistrationPlugin::menulist() const
 
 
 template<typename TPixelType>
-class ITKDemonsRegistrationSpecializaed
+class PluginSpecialized : public V3DITKFilterDualImage< TPixelType, TPixelType >
 {
 public:
+
+  typedef V3DITKFilterDualImage< TPixelType, TPixelType >   Superclass;
+  typedef typename Superclass::Input3DImageType               Input3DImageType;
 
   typedef TPixelType PixelType;
 
   itkStaticConstMacro(Image3Dimension, unsigned int, 3);
 
-  typedef itk::Image< PixelType,  Image3Dimension > ImageType_input;
-
   typedef itk::Vector< float, Image3Dimension >    VectorPixelType;
   typedef itk::Image<  VectorPixelType, Image3Dimension > DeformationFieldType;
   typedef itk::DemonsRegistrationFilter<
-    ImageType_input,
-    ImageType_input,
+    Input3DImageType,
+    Input3DImageType,
     DeformationFieldType>   RegistrationFilterType;
 
 
@@ -79,6 +81,13 @@ public:
       std::cout << "  RMS Change: " << filter->GetRMSChange() << std::endl;
       }
   };
+
+public:
+
+  PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
+    {
+    this->m_Filter = RegistrationFilterType::New();
+    }
 
   void Execute(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
   {
@@ -135,7 +144,7 @@ public:
     importFilter_mov->SetRegion(region);
 
     //set image Origin
-    typename ImageType_input::PointType origin;
+    typename Input3DImageType::PointType origin;
     origin.Fill(0.0);
     importFilter_fix->SetOrigin(origin);
     importFilter_mov->SetOrigin(origin);
@@ -155,37 +164,31 @@ public:
 
 
     // RUN DEMONS FILTER HERE
-    typename RegistrationFilterType::Pointer filter = RegistrationFilterType::New();
 
-    filter->SetFixedImage( importFilter_fix->GetOutput() );
-    filter->SetMovingImage( importFilter_mov->GetOutput() );
+    this->m_Filter->SetFixedImage( importFilter_fix->GetOutput() );
+    this->m_Filter->SetMovingImage( importFilter_mov->GetOutput() );
 
-    //
-    //  These parameters should be provided by the Qt Dialog
-    //
-    filter->SetNumberOfIterations( 50 );
-    filter->SetStandardDeviations( 1.0 );
-    filter->SetMaximumRMSError( 0.01 );
+    this->SetupParameters();
 
     typename CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
 
-    filter->AddObserver( itk::IterationEvent(), observer );
+    this->m_Filter->AddObserver( itk::IterationEvent(), observer );
 
-    filter->Update();
+    this->m_Filter->Update();
 
     typedef itk::WarpImageFilter<
-                            ImageType_input, 
-                            ImageType_input,
+                            Input3DImageType, 
+                            Input3DImageType,
                             DeformationFieldType  >     WarperType;
 
     typedef itk::LinearInterpolateImageFunction<
-                                     ImageType_input,
+                                     Input3DImageType,
                                      double          >  InterpolatorType;
 
     typename WarperType::Pointer warper = WarperType::New();
 
     typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-    typename ImageType_input::Pointer fixedImage = importFilter_fix->GetOutput();
+    typename Input3DImageType::Pointer fixedImage = importFilter_fix->GetOutput();
 
     warper->SetInput( importFilter_mov->GetOutput() );
     warper->SetInterpolator( interpolator );
@@ -195,7 +198,7 @@ public:
 
 #ifdef MANUALLY_COPYING_IMAGE_BACK_TO_V3D
     //------------------------------------------------------------------
-    typedef itk::ImageRegionConstIterator<ImageType_input> IteratorType;
+    typedef itk::ImageRegionConstIterator<Input3DImageType> IteratorType;
     IteratorType it(caster->GetOutput(), caster->GetOutput()->GetRequestedRegion());
     it.GoToBegin();
 
@@ -217,32 +220,42 @@ public:
 
   }
 
+  virtual void ComputeOneRegion()
+    {
+    }
+
+  virtual void SetupParameters()
+    {
+    //
+    // These values should actually be provided by the Qt Dialog...
+    //
+    this->m_Filter->SetNumberOfIterations( 50 );
+    this->m_Filter->SetStandardDeviations( 1.0 );
+    this->m_Filter->SetMaximumRMSError( 0.01 );
+    }
+
+private:
+
+    typename RegistrationFilterType::Pointer   m_Filter;
+
 };
 
-#define EXECUTE( v3d_pixel_type, c_pixel_type ) \
+#define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
-  ITKDemonsRegistrationSpecializaed< c_pixel_type > runner; \
+    PluginSpecialized< c_pixel_type > runner( &callback ); \
     runner.Execute(  menu_name, callback, parent ); \
     break; \
     } 
 
-#define EXECUTE_ALL_PIXEL_TYPES \
-  Image4DSimple *p4DImage = callback.getImage(curwin); \
-    if (! p4DImage) return; \
-    ImagePixelType pixelType = p4DImage->getDatatype(); \
-    switch( pixelType )  \
-      {  \
-      EXECUTE( V3D_UINT8, unsigned char );  \
-      EXECUTE( V3D_UINT16, unsigned short int );  \
-      EXECUTE( V3D_FLOAT32, float );  \
-      case V3D_UNKNOWN:  \
-        {  \
-        }  \
-      }  
-
 void ITKDemonsRegistrationPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
+  if (menu_name == QObject::tr("about this plugin"))
+    {
+    QMessageBox::information(parent, "Version info", "Demons Registration 1.0 (2010-Jun-3): this plugin is developed by Luis Ibanez.");
+    return;
+    }
+
   v3dhandle curwin = callback.currentImageWindow();
   if (!curwin)
     {
@@ -250,5 +263,12 @@ void ITKDemonsRegistrationPlugin::domenu(const QString & menu_name, V3DPluginCal
     return;
     }
 
-  EXECUTE_ALL_PIXEL_TYPES;
+  Image4DSimple *p4DImage = callback.getImage(curwin);
+  if (! p4DImage)
+    {
+    v3d_msg(tr("The input image is null."));
+    return;
+    }
+
+  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES; // Defined in V3DITKFilterDualImage.h
 }
