@@ -12,6 +12,8 @@
 // ITK Header Files
 #include "itkImportImageFilter.h"
 #include "itkDemonsRegistrationFilter.h"
+#include "itkWarpImageFilter.h"
+#include "itkLinearInterpolateImageFunction.h"
 #include "itkImage.h"
 #include "itkCommand.h"
 
@@ -121,7 +123,32 @@ public:
     filter->SetFixedImage( importFilter_fix->GetOutput() );
     filter->SetMovingImage( importFilter_mov->GetOutput() );
 
+
+    filter->SetNumberOfIterations( 50 );
+    filter->SetStandardDeviations( 1.0 );
+
+
     filter->Update();
+
+    typedef itk::WarpImageFilter<
+                            ImageType_input, 
+                            ImageType_input,
+                            DeformationFieldType  >     WarperType;
+
+    typedef itk::LinearInterpolateImageFunction<
+                                     ImageType_input,
+                                     double          >  InterpolatorType;
+
+    typename WarperType::Pointer warper = WarperType::New();
+
+    typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+    typename ImageType_input::Pointer fixedImage = importFilter_fix->GetOutput();
+
+    warper->SetInput( importFilter_mov->GetOutput() );
+    warper->SetInterpolator( interpolator );
+    warper->SetOutputSpacing( fixedImage->GetSpacing() );
+    warper->SetOutputOrigin( fixedImage->GetOrigin() );
+    warper->SetOutputDirection( fixedImage->GetDirection() );
 
 #ifdef MANUALLY_COPYING_IMAGE_BACK_TO_V3D
 		//------------------------------------------------------------------
