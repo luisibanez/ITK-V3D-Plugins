@@ -18,7 +18,7 @@ Q_EXPORT_PLUGIN2(Kmeans, KmeansPlugin)
 
 QStringList KmeansPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK Invert Intensity")
+    return QStringList() << QObject::tr("ITK Kmeans")
 						<< QObject::tr("about this plugin");
 }
 
@@ -49,8 +49,8 @@ public:
 
     typedef typename Superclass::Input3DImageType   ImageType;
 
-    typedef itk::VectorImageKmeansImageFilter< ImageType, ImageType > InvertFilterType;
-    typename InvertFilterType::Pointer filter = InvertFilterType::New();
+    typedef itk::VectorImageKmeansImageFilter< ImageType, ImageType > FilterType;
+    typename FilterType::Pointer filter = FilterType::New();
 
     filter->SetInput( this->GetInput3DImage() );
 
@@ -96,7 +96,7 @@ void KmeansPlugin::domenu(const QString & menu_name, V3DPluginCallback & callbac
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK Invert Intensity 1.0 (2010-May-12): this plugin is developed by Luis Ibanez.");
+    QMessageBox::information(parent, "Version info", "ITK Kmeasn 1.0 (2010-June-3): this plugin is developed by Luis Ibanez.");
     return;
     }
 
