@@ -89,8 +89,7 @@ class ITKRegistrationAffineSpecializaed
 public:
 	void Execute(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
 	{
-		v3dhandle oldwin = callback.currentImageWindow();
-
+		//get image pointers
 		v3dhandleList wndlist = callback.getImageWindowList();
 		if(wndlist.size()<2)
 		{
@@ -108,6 +107,7 @@ public:
 			return;
 		}
 
+		//get global setting
 		V3D_GlobalSetting globalSetting = callback.getGlobalSetting();
 		const unsigned int Dimension = 2;
 	    int channelToFilter = globalSetting.iChannel_for_plugin;
@@ -118,7 +118,7 @@ public:
 		}
 
 		//------------------------------------------------------------------
-		//import image from V3D
+		//import images from V3D
 		typedef TPixelType PixelType;
 		typedef itk::Image< PixelType,  Dimension > ImageType_input;
 		typedef itk::ImportImageFilter<PixelType, Dimension> ImportFilterType;
@@ -150,7 +150,6 @@ public:
 		importFilter_fix->SetSpacing(spacing);
 		importFilter_mov->SetSpacing(spacing);
 
-		printf("1\n");
 		//set import image pointer
 		PixelType * data1d_fix = reinterpret_cast<PixelType *> (p4DImage_fix->getRawData());
 		PixelType * data1d_mov = reinterpret_cast<PixelType *> (p4DImage_mov->getRawData());
@@ -159,9 +158,8 @@ public:
 		importFilter_fix->SetImportPointer(data1d_fix, numberOfPixels,importImageFilterWillOwnTheBuffer);
 		importFilter_mov->SetImportPointer(data1d_mov, numberOfPixels,importImageFilterWillOwnTheBuffer);
 
-		printf("2\n");
 		//------------------------------------------------------------------
-		//setup filter: cast datatype to float for anisotropic process
+		//setup filter: cast datatype to float
 		typedef itk::Image< float, Dimension >   	ImageType_mid;
 		typedef itk::RescaleIntensityImageFilter<ImageType_input, ImageType_mid > RescaleFilterType_input;
 
@@ -175,11 +173,9 @@ public:
 		rescaler_to_32f_fix->Update();
 		rescaler_to_32f_mov->Update();
 
-		printf("4\n");
 		//------------------------------------------------------------------
-		//
+		//set method type used in each module
 		typedef itk::AffineTransform<double,Dimension  >		TransformType;
-
 		typedef itk::RegularStepGradientDescentOptimizer		OptimizerType;
 		typedef itk::MeanSquaresImageToImageMetric<
 											ImageType_mid,
@@ -202,39 +198,36 @@ public:
 		registration->SetOptimizer(     optimizer     );
 		registration->SetInterpolator(  interpolator  );
 
-		registration->SetFixedImage(    rescaler_to_32f_fix->GetOutput()    );
+		registration->SetFixedImage(    rescaler_to_32f_fix->GetOutput()   );
 		registration->SetMovingImage(   rescaler_to_32f_mov->GetOutput()   );
 
 		registration->SetFixedImageRegion(rescaler_to_32f_fix->GetOutput()->GetBufferedRegion() );
 
-		printf("5\n");
+		//align the mass center of two images (use the offset here to initialize the transform of registration)
 		typedef itk::CenteredTransformInitializer<
 										TransformType,
 										ImageType_mid,
 										ImageType_mid >  TransformInitializerType;
-		typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();printf("5.1\n");
-		initializer->SetTransform(   transform );printf("5.2\n");
-		initializer->SetFixedImage(  rescaler_to_32f_fix->GetOutput() );printf("5.3\n");
-		initializer->SetMovingImage( rescaler_to_32f_mov->GetOutput() );printf("5.4\n");
-		initializer->MomentsOn();printf("5.5\n");
-		initializer->InitializeTransform();printf("5.6\n");
+		typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
+		initializer->SetTransform(   transform );
+		initializer->SetFixedImage(  rescaler_to_32f_fix->GetOutput() );
+		initializer->SetMovingImage( rescaler_to_32f_mov->GetOutput() );
+		initializer->MomentsOn();
+		initializer->InitializeTransform();
 
-
-		printf("6\n");
+		//use the offset of the mass center of two image to initialize the transform of registration
 		registration->SetInitialTransformParameters(transform->GetParameters() );
 
-		double translationScale = 1.0 / 1000.0;
-
-		typedef OptimizerType::ScalesType       OptimizerScalesType;
+		//set optimizer paras
+		typedef OptimizerType::ScalesType OptimizerScalesType;
 		OptimizerScalesType optimizerScales( transform->GetNumberOfParameters() );
-
+		double translationScale = 1.0 / 1000.0;
 		optimizerScales[0] =  1.0;
 		optimizerScales[1] =  1.0;
 		optimizerScales[2] =  1.0;
 		optimizerScales[3] =  1.0;
 		optimizerScales[4] =  translationScale;
 		optimizerScales[5] =  translationScale;
-
 		optimizer->SetScales( optimizerScales );
 
 		double steplength = 0.1;
@@ -244,7 +237,6 @@ public:
 		optimizer->SetNumberOfIterations( maxNumberOfIterations );
 		optimizer->MinimizeOn();
 
-		printf("7\n");
 		// Create the Command observer and register it with the optimizer.
 		CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
 		optimizer->AddObserver( itk::IterationEvent(), observer );
@@ -263,9 +255,8 @@ public:
 			return;
 		}
 
-		printf("8\n");
-		//  Once the optimization converges, we recover the parameters from the
-		//  registration method.
+		//------------------------------------------------------------------
+		//  Once the optimization converges, we recover the parameters from the registration method
 		OptimizerType::ParametersType finalParameters = registration->GetLastTransformParameters();
 
 		const double finalRotationCenterX = transform->GetCenter()[0];
@@ -285,13 +276,11 @@ public:
 		std::cout << " Iterations    = " << numberOfIterations << std::endl;
 		std::cout << " Metric value  = " << bestValue          << std::endl;
 
-
-		//  We will resample the moving image and write out the difference image
+		//------------------------------------------------------------------
+		//  resample the moving image and write out the difference image
 		//  before and after registration. We will also rescale the intensities of the
 		//  difference images, so that they look better!
-		typedef itk::ResampleImageFilter<
-										ImageType_mid,
-										ImageType_mid >    ResampleFilterType;
+		typedef itk::ResampleImageFilter<ImageType_mid,ImageType_mid> ResampleFilterType;
 
 		typename TransformType::Pointer finalTransform = TransformType::New();
 		finalTransform->SetParameters( finalParameters );
@@ -306,13 +295,12 @@ public:
 		resampler->SetOutputOrigin(  fixedImage->GetOrigin() );
 		resampler->SetOutputSpacing( fixedImage->GetSpacing() );
 		resampler->SetOutputDirection( fixedImage->GetDirection() );
-		resampler->SetDefaultPixelValue( 100 );
+		resampler->SetDefaultPixelValue( 0 );
 
+		// cast datatype to original one for
 		typedef  unsigned char  OutputPixelType;
 		typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
-		typedef itk::CastImageFilter<
-							ImageType_mid,
-							OutputImageType > CastFilterType;
+		typedef itk::CastImageFilter<ImageType_mid,OutputImageType > CastFilterType;
 		CastFilterType::Pointer  caster =  CastFilterType::New();
 
 		typedef itk::ImageFileWriter< OutputImageType >  WriterType;
