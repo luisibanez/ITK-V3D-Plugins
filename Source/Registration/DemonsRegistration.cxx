@@ -51,7 +51,7 @@ public:
   typedef itk::WarpImageFilter<
                           Input3DImageType, 
                           Input3DImageType,
-                          DeformationFieldType  >     WarperType;
+                          DeformationFieldType  >     WarpFilterType;
 
   typedef itk::LinearInterpolateImageFunction<
                                    Input3DImageType,
@@ -96,6 +96,7 @@ public:
   PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
     this->m_Filter = RegistrationFilterType::New();
+    this->m_Warper = WarpFilterType::New();
     }
 
   virtual ~PluginSpecialized() {};
@@ -109,8 +110,6 @@ public:
 
   virtual void ComputeOneRegion()
     {
-
-    // RUN DEMONS FILTER HERE
     const Input3DImageType * fixedImage  = this->GetInput3DImage1();
     const Input3DImageType * movingImage = this->GetInput3DImage2();
 
@@ -123,7 +122,20 @@ public:
 
     this->m_Filter->AddObserver( itk::IterationEvent(), observer );
 
-    this->m_Filter->Update();
+    std::cout << "Demons filter started" << std::endl;
+
+    try
+      {
+      this->m_Filter->Update();
+      }
+    catch( itk::ExceptionObject & excp)
+      {
+      std::cerr << "Error run this filter." << std::endl;
+      std::cerr << excp << std::endl;
+      return;
+      }
+
+    std::cout << "Demons filter finished" << std::endl;
 
 
     typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
@@ -133,6 +145,23 @@ public:
     this->m_Warper->SetOutputSpacing( fixedImage->GetSpacing() );
     this->m_Warper->SetOutputOrigin( fixedImage->GetOrigin() );
     this->m_Warper->SetOutputDirection( fixedImage->GetDirection() );
+
+    this->m_Warper->SetDeformationField( this->m_Filter->GetOutput() );
+
+    std::cout << "Warping filter started" << std::endl;
+
+    try
+      {
+      this->m_Warper->Update();
+      }
+    catch( itk::ExceptionObject & excp)
+      {
+      std::cerr << "Error run this filter." << std::endl;
+      std::cerr << excp << std::endl;
+      return;
+      }
+  
+    std::cout << "Warping filter finished" << std::endl;
 
     this->SetOutputImage( this->m_Warper->GetOutput() );
 
@@ -151,7 +180,7 @@ public:
 private:
 
     typename RegistrationFilterType::Pointer   m_Filter;
-    typename WarperType::Pointer               m_Warper;
+    typename WarpFilterType::Pointer           m_Warper;
 
 };
 
