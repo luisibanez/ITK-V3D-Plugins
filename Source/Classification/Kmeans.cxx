@@ -54,6 +54,13 @@ public:
 
     filter->SetInput( this->GetInput3DImage() );
 
+
+    // These values should be provided by the GUI Dialog...
+    filter->AddClassWithInitialMean(   0 );
+    filter->AddClassWithInitialMean( 100 );
+
+    filter->SetUseNonContiguousLabels( 1 );
+
     filter->Update();
 
     this->SetOutputImage( filter->GetOutput() );
