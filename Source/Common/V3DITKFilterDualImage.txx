@@ -10,8 +10,11 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
 {
   this->m_V3DPluginCallback = callback;
 
-  this->m_Impor2DFilter = Import2DFilterType::New();
-  this->m_Impor3DFilter = Import3DFilterType::New();
+  this->m_Impor2DFilter1 = Import2DFilterType::New();
+  this->m_Impor2DFilter2 = Import2DFilterType::New();
+
+  this->m_Impor3DFilter1 = Import3DFilterType::New();
+  this->m_Impor3DFilter2 = Import3DFilterType::New();
 }
 
 
@@ -53,21 +56,124 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
 template <typename TInputPixelType, typename TOutputPixelType>
 const typename V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >::Input2DImageType *
 V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
-::GetInput2DImage() const
+::GetInput2DImage1() const
 {
-  return this->m_Impor2DFilter->GetOutput();
+  return this->m_Impor2DFilter1->GetOutput();
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+const typename V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >::Input2DImageType *
+V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
+::GetInput2DImage2() const
+{
+  return this->m_Impor2DFilter2->GetOutput();
 }
 
 
 template <typename TInputPixelType, typename TOutputPixelType>
 const typename V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >::Input3DImageType *
 V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
-::GetInput3DImage() const
+::GetInput3DImage1() const
 {
-  return this->m_Impor3DFilter->GetOutput();
+  return this->m_Impor3DFilter1->GetOutput();
 }
 
 
+template <typename TInputPixelType, typename TOutputPixelType>
+const typename V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >::Input3DImageType *
+V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
+::GetInput3DImage2() const
+{
+  return this->m_Impor3DFilter2->GetOutput();
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
+::TransferInputImages( V3DPluginCallback & callback )
+{
+  //get image pointers
+  v3dhandleList wndlist = callback.getImageWindowList();
+  if(wndlist.size()<2)
+    {
+    v3d_msg(QObject::tr("Registration need at least two images!"));
+    return;
+    }
+
+  Image4DSimple* p4DImage_fix=callback.getImage(wndlist[0]);
+  Image4DSimple* p4DImage_mov=callback.getImage(wndlist[1]);
+
+#ifdef CHECK_FOR_IMAGES_TO_HAVE_SAME_SIZE
+  if(p4DImage_fix->getXDim()!=p4DImage_mov->getXDim() ||
+     p4DImage_fix->getYDim()!=p4DImage_mov->getYDim() ||
+     p4DImage_fix->getZDim()!=p4DImage_mov->getZDim() ||
+     p4DImage_fix->getCDim()!=p4DImage_mov->getCDim())
+  {
+    v3d_msg(QObject::tr("Two input images have different size!"));
+    return;
+  }
+#endif
+
+
+  //get global setting
+  V3D_GlobalSetting globalSetting = callback.getGlobalSetting();
+    int channelToFilter = globalSetting.iChannel_for_plugin;
+    if( channelToFilter >= p4DImage_fix->getCDim())
+  {
+    v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
+    return;
+  }
+
+  //------------------------------------------------------------------
+  //import images from V3D
+
+  //set ROI region
+  typename Import3DFilterType::RegionType region;
+  typename Import3DFilterType::IndexType start;
+  start.Fill(0);
+
+  typename Import3DFilterType::SizeType size;
+  size[0] = p4DImage_fix->getXDim();
+  size[1] = p4DImage_fix->getYDim();
+  size[2] = p4DImage_fix->getZDim();
+
+  region.SetIndex(start);
+  region.SetSize(size);
+
+  this->m_Impor3DFilter1->SetRegion(region);
+  this->m_Impor3DFilter2->SetRegion(region);
+
+  //set image Origin
+  typename Input3DImageType::PointType origin;
+  origin.Fill(0.0);
+
+  this->m_Impor3DFilter1->SetOrigin(origin);
+  this->m_Impor3DFilter2->SetOrigin(origin);
+
+  //set spacing
+  typename Import3DFilterType::SpacingType spacing;
+  spacing.Fill(1.0);
+
+  this->m_Impor3DFilter1->SetSpacing(spacing);
+  this->m_Impor3DFilter2->SetSpacing(spacing);
+
+  //set import image pointer
+  InputPixelType * data1d_fix = reinterpret_cast<InputPixelType *> (p4DImage_fix->getRawData());
+  InputPixelType * data1d_mov = reinterpret_cast<InputPixelType *> (p4DImage_mov->getRawData());
+
+  unsigned long int numberOfPixels = p4DImage_fix->getTotalBytes();
+  const bool importImageFilterWillOwnTheBuffer = false;
+
+  this->m_Impor3DFilter1->SetImportPointer(data1d_fix, numberOfPixels,importImageFilterWillOwnTheBuffer);
+  this->m_Impor3DFilter2->SetImportPointer(data1d_mov, numberOfPixels,importImageFilterWillOwnTheBuffer);
+}
+
+
+//
+// FIXME: Should the TransferInput() method be removed ?
+//
 template <typename TInputPixelType, typename TOutputPixelType>
 void
 V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
@@ -89,20 +195,20 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
   region.SetIndex( start );
   region.SetSize(  size  );
   
-  this->m_Impor3DFilter->SetRegion( region );
+  this->m_Impor3DFilter1->SetRegion( region );
   
   region.SetSize( size );
   
   typename Input3DImageType::PointType origin;
   origin.Fill( 0.0 );
   
-  this->m_Impor3DFilter->SetOrigin( origin );
+  this->m_Impor3DFilter1->SetOrigin( origin );
   
   
   typename Import3DFilterType::SpacingType spacing;
   spacing.Fill( 1.0 );
   
-  this->m_Impor3DFilter->SetSpacing( spacing );
+  this->m_Impor3DFilter1->SetSpacing( spacing );
   
   const unsigned int numberOfPixels = region.GetNumberOfPixels();
 
@@ -110,9 +216,9 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
 
   InputPixelType * inputBuffer = const_cast<InputPixelType *>( constInputBuffer );
 
-  this->m_Impor3DFilter->SetImportPointer( inputBuffer, numberOfPixels, importImageFilterWillOwnTheBuffer );
+  this->m_Impor3DFilter1->SetImportPointer( inputBuffer, numberOfPixels, importImageFilterWillOwnTheBuffer );
 
-  this->m_Impor3DFilter->Update();
+  this->m_Impor3DFilter1->Update();
 }
       
 

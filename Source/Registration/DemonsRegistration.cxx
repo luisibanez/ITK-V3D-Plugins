@@ -48,6 +48,15 @@ public:
     Input3DImageType,
     DeformationFieldType>   RegistrationFilterType;
 
+  typedef itk::WarpImageFilter<
+                          Input3DImageType, 
+                          Input3DImageType,
+                          DeformationFieldType  >     WarpFilterType;
+
+  typedef itk::LinearInterpolateImageFunction<
+                                   Input3DImageType,
+                                   double          >  InterpolatorType;
+
 
   class CommandIterationUpdate : public itk::Command 
   {
@@ -87,86 +96,25 @@ public:
   PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
     this->m_Filter = RegistrationFilterType::New();
+    this->m_Warper = WarpFilterType::New();
     }
 
+  virtual ~PluginSpecialized() {};
+
+  
   void Execute(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
-  {
-    //get image pointers
-    v3dhandleList wndlist = callback.getImageWindowList();
-    if(wndlist.size()<2)
     {
-      v3d_msg(QObject::tr("Registration need at least two images!"));
-      return;
-    }
-    v3dhandle oldwin = wndlist[1];
-    Image4DSimple* p4DImage_fix=callback.getImage(wndlist[0]);
-    Image4DSimple* p4DImage_mov=callback.getImage(wndlist[1]);
-
-#ifdef CHECK_FOR_IMAGES_TO_HAVE_SAME_SIZE
-    if(p4DImage_fix->getXDim()!=p4DImage_mov->getXDim() ||
-       p4DImage_fix->getYDim()!=p4DImage_mov->getYDim() ||
-       p4DImage_fix->getZDim()!=p4DImage_mov->getZDim() ||
-       p4DImage_fix->getCDim()!=p4DImage_mov->getCDim())
-    {
-      v3d_msg(QObject::tr("Two input images have different size!"));
-      return;
-    }
-#endif
-
-
-    //get global setting
-    V3D_GlobalSetting globalSetting = callback.getGlobalSetting();
-      int channelToFilter = globalSetting.iChannel_for_plugin;
-      if( channelToFilter >= p4DImage_fix->getCDim())
-    {
-      v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
-      return;
+    this->TransferInputImages( callback );
+    this->Compute();
     }
 
-    //------------------------------------------------------------------
-    //import images from V3D
-    typedef itk::ImportImageFilter<PixelType, Image3Dimension> ImportFilterType;
+  virtual void ComputeOneRegion()
+    {
+    const Input3DImageType * fixedImage  = this->GetInput3DImage1();
+    const Input3DImageType * movingImage = this->GetInput3DImage2();
 
-    typename ImportFilterType::Pointer importFilter_fix = ImportFilterType::New();
-    typename ImportFilterType::Pointer importFilter_mov = ImportFilterType::New();
-
-    //set ROI region
-    typename ImportFilterType::RegionType region;
-    typename ImportFilterType::IndexType start;
-    start.Fill(0);
-    typename ImportFilterType::SizeType size;
-    size[0] = p4DImage_fix->getXDim();
-    size[1] = p4DImage_fix->getYDim();
-    size[2] = p4DImage_fix->getZDim();
-    region.SetIndex(start);
-    region.SetSize(size);
-    importFilter_fix->SetRegion(region);
-    importFilter_mov->SetRegion(region);
-
-    //set image Origin
-    typename Input3DImageType::PointType origin;
-    origin.Fill(0.0);
-    importFilter_fix->SetOrigin(origin);
-    importFilter_mov->SetOrigin(origin);
-    //set spacing
-    typename ImportFilterType::SpacingType spacing;
-    spacing.Fill(1.0);
-    importFilter_fix->SetSpacing(spacing);
-    importFilter_mov->SetSpacing(spacing);
-
-    //set import image pointer
-    PixelType * data1d_fix = reinterpret_cast<PixelType *> (p4DImage_fix->getRawData());
-    PixelType * data1d_mov = reinterpret_cast<PixelType *> (p4DImage_mov->getRawData());
-    unsigned long int numberOfPixels = p4DImage_fix->getTotalBytes();
-    const bool importImageFilterWillOwnTheBuffer = false;
-    importFilter_fix->SetImportPointer(data1d_fix, numberOfPixels,importImageFilterWillOwnTheBuffer);
-    importFilter_mov->SetImportPointer(data1d_mov, numberOfPixels,importImageFilterWillOwnTheBuffer);
-
-
-    // RUN DEMONS FILTER HERE
-
-    this->m_Filter->SetFixedImage( importFilter_fix->GetOutput() );
-    this->m_Filter->SetMovingImage( importFilter_mov->GetOutput() );
+    this->m_Filter->SetFixedImage( fixedImage );
+    this->m_Filter->SetMovingImage( movingImage );
 
     this->SetupParameters();
 
@@ -174,54 +122,49 @@ public:
 
     this->m_Filter->AddObserver( itk::IterationEvent(), observer );
 
-    this->m_Filter->Update();
+    std::cout << "Demons filter started" << std::endl;
 
-    typedef itk::WarpImageFilter<
-                            Input3DImageType, 
-                            Input3DImageType,
-                            DeformationFieldType  >     WarperType;
+    try
+      {
+      this->m_Filter->Update();
+      }
+    catch( itk::ExceptionObject & excp)
+      {
+      std::cerr << "Error run this filter." << std::endl;
+      std::cerr << excp << std::endl;
+      return;
+      }
 
-    typedef itk::LinearInterpolateImageFunction<
-                                     Input3DImageType,
-                                     double          >  InterpolatorType;
+    std::cout << "Demons filter finished" << std::endl;
 
-    typename WarperType::Pointer warper = WarperType::New();
 
     typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-    typename Input3DImageType::Pointer fixedImage = importFilter_fix->GetOutput();
 
-    warper->SetInput( importFilter_mov->GetOutput() );
-    warper->SetInterpolator( interpolator );
-    warper->SetOutputSpacing( fixedImage->GetSpacing() );
-    warper->SetOutputOrigin( fixedImage->GetOrigin() );
-    warper->SetOutputDirection( fixedImage->GetDirection() );
+    this->m_Warper->SetInput( movingImage );
+    this->m_Warper->SetInterpolator( interpolator );
+    this->m_Warper->SetOutputSpacing( fixedImage->GetSpacing() );
+    this->m_Warper->SetOutputOrigin( fixedImage->GetOrigin() );
+    this->m_Warper->SetOutputDirection( fixedImage->GetDirection() );
 
-#ifdef MANUALLY_COPYING_IMAGE_BACK_TO_V3D
-    //------------------------------------------------------------------
-    typedef itk::ImageRegionConstIterator<Input3DImageType> IteratorType;
-    IteratorType it(caster->GetOutput(), caster->GetOutput()->GetRequestedRegion());
-    it.GoToBegin();
+    this->m_Warper->SetDeformationField( this->m_Filter->GetOutput() );
 
-//    if(!globalSetting.b_plugin_dispResInNewWindow)
-//    {
-      printf("display results in a new window\n");
-      //copy data back to V3D
-      while(!it.IsAtEnd())
+    std::cout << "Warping filter started" << std::endl;
+
+    try
       {
-        *data1d_mov=it.Get();
-        ++it;
-        ++data1d_mov;
+      this->m_Warper->Update();
       }
-
-      callback.setImageName(oldwin, callback.getImageName(oldwin)+"_new");
-      callback.updateImageWindow(oldwin);
+    catch( itk::ExceptionObject & excp)
+      {
+      std::cerr << "Error run this filter." << std::endl;
+      std::cerr << excp << std::endl;
+      return;
       }
-#endif
+  
+    std::cout << "Warping filter finished" << std::endl;
 
-  }
+    this->SetOutputImage( this->m_Warper->GetOutput() );
 
-  virtual void ComputeOneRegion()
-    {
     }
 
   virtual void SetupParameters()
@@ -237,6 +180,7 @@ public:
 private:
 
     typename RegistrationFilterType::Pointer   m_Filter;
+    typename WarpFilterType::Pointer           m_Warper;
 
 };
 

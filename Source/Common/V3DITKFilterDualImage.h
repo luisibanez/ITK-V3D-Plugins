@@ -44,6 +44,9 @@ protected:
   virtual void Compute();
   virtual void Initialize();
 
+  virtual void TransferInputImages( V3DPluginCallback & callback );
+
+  // FIXME: Should the TransferInput() method be removed ?
   virtual void TransferInput( const V3D_Image3DBasic & inputImage,
     V3DLONG x1, V3DLONG x2, V3DLONG y1, V3DLONG y2, V3DLONG z1, V3DLONG z2 );
 
@@ -51,8 +54,11 @@ protected:
   virtual void SetupParameters() = 0;  //this needs to be implemented for new plugin code
   virtual void TransferOutput( V3D_Image3DBasic & outputImage ) const;
 
-  const Input2DImageType * GetInput2DImage() const;
-  const Input3DImageType * GetInput3DImage() const;
+  const Input2DImageType * GetInput2DImage1() const;
+  const Input2DImageType * GetInput2DImage2() const;
+
+  const Input3DImageType * GetInput3DImage1() const;
+  const Input3DImageType * GetInput3DImage2() const;
 
   void SetOutputImage( Output2DImageType * image );
   void SetOutputImage( Output3DImageType * image );
@@ -64,8 +70,11 @@ private:
   typedef itk::ImportImageFilter< InputPixelType, 2 > Import2DFilterType;
   typedef itk::ImportImageFilter< InputPixelType, 3 > Import3DFilterType;
 
-  typename Import2DFilterType::Pointer      m_Impor2DFilter;
-  typename Import3DFilterType::Pointer      m_Impor3DFilter;
+  typename Import2DFilterType::Pointer      m_Impor2DFilter1;
+  typename Import2DFilterType::Pointer      m_Impor2DFilter2;
+
+  typename Import3DFilterType::Pointer      m_Impor3DFilter1;
+  typename Import3DFilterType::Pointer      m_Impor3DFilter2;
 
   V3DPluginCallback  *                      m_V3DPluginCallback;
 
