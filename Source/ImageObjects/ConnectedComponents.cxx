@@ -103,7 +103,7 @@ void ConnectComponentsPlugin::domenu(const QString & menu_name, V3DPluginCallbac
 {
 	if (menu_name == QObject::tr("about this plugin"))
     {
-		QMessageBox::information(parent, "Version info", "ITK Connnected Components 1.0 (2010-June-4): this plugin is developed by Luis Ibanez.");
+		QMessageBox::information(parent, "Version info", "ITK Connnected Components 1.0 (2010-June-4): this plugin is developed by Hanchuan Peng.");
 		return;
     }
 	

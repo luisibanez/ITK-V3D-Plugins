@@ -3,3 +3,4 @@ SET(PLUGIN_GROUP_NAME "ImageObjects")
 
 CONFIGURE_V3D_PLUGIN(ConnectedComponents)
 CONFIGURE_V3D_PLUGIN(Relabel)
+CONFIGURE_V3D_PLUGIN(ObjectFilter_Shape)
