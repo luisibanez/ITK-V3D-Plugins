@@ -39,7 +39,8 @@ class V3DITKPluginBaseSingleImage : public QObject, public V3DPluginInterface
     Q_INTERFACES(V3DPluginInterface)
 
 public:
-	V3DITKPluginBaseSingleImage() {}
+	V3DITKPluginBaseSingleImage();
+	void SetPluginName( const char * name );
   QStringList menulist() const;
 	QStringList funclist() const;
 

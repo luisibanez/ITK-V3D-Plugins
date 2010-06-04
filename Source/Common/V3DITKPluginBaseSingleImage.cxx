@@ -4,8 +4,17 @@
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-// ??     Q_EXPORT_PLUGIN2(V3DITKPluginBaseSingleImage, V3DITKPluginBaseSingleImage )
+// ?? Q_EXPORT_PLUGIN2(V3DITKCommon, V3DITKPluginBaseSingleImage )
 
+
+V3DITKPluginBaseSingleImage::V3DITKPluginBaseSingleImage()
+{
+}
+
+void V3DITKPluginBaseSingleImage::SetPluginName( const char * name )
+{
+  this->m_PluginName = name;
+}
 
 QStringList V3DITKPluginBaseSingleImage::menulist() const
 {

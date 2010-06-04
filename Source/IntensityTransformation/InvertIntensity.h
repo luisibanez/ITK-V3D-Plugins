@@ -7,12 +7,13 @@
 class InvertIntensityPlugin : public V3DITKPluginBaseSingleImage
 {
     Q_OBJECT
-    Q_INTERFACES(V3DPluginInterface)
+//    Q_INTERFACES(V3DITKPluginBaseSingleImage)
 
 public:
-	InvertIntensityPlugin() {}
-  QStringList menulist() const;
-	QStringList funclist() const;
+	InvertIntensityPlugin()
+    {
+    this->SetPluginName("InvertIntensity");
+    }
 
 	void domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent);
 

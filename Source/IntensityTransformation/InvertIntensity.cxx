@@ -7,13 +7,6 @@
 // plugin's project file.
 Q_EXPORT_PLUGIN2(InvertIntensity, InvertIntensityPlugin)
 
-
-QStringList InvertIntensityPlugin::menulist() const
-{
-    return QStringList() << QObject::tr("ITK Invert Intensity")
-						<< QObject::tr("about this plugin");
-}
-
 template <typename TPixelType>
 class InvertIntensitySpecialized : V3DITKFilterSingleImage< TPixelType, TPixelType >
 {
