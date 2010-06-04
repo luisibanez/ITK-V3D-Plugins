@@ -3,4 +3,5 @@ SET(PLUGIN_GROUP_NAME "Registration")
 
 CONFIGURE_V3D_PLUGIN(RegistrationAffine)
 CONFIGURE_V3D_PLUGIN(DemonsRegistration)
+CONFIGURE_V3D_PLUGIN(RegistrationBSpline)
 

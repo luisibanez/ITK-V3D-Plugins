@@ -19,7 +19,7 @@ Q_EXPORT_PLUGIN2(Sigmoid, SigmoidPlugin)
 QStringList SigmoidPlugin::menulist() const
 {
     return QStringList() << QObject::tr("ITK Sigmoid")
-						<< QObject::tr("about this plugin");
+            << QObject::tr("about this plugin");
 }
 
 QStringList SigmoidPlugin::funclist() const
@@ -29,7 +29,7 @@ QStringList SigmoidPlugin::funclist() const
 
 
 template <typename TPixelType>
-class SigmoidSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType >
+class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType >
 {
   typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
@@ -38,12 +38,12 @@ class SigmoidSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelTyp
 
 public:
 
-  SigmoidSpecialized( V3DPluginCallback * callback ): Superclass(callback)
+  PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
     this->m_Filter = FilterType::New();
     }
 
-  virtual ~SigmoidSpecialized() {};
+  virtual ~PluginSpecialized() {};
 
   
   void Execute(const QString &menu_name, QWidget *parent)
@@ -65,9 +65,9 @@ public:
 
     this->SetOutputImage( this->m_Filter->GetOutput() );
     }
-	
+  
   virtual void SetupParameters()
-  	{
+    {
     //
     // These values should actually be provided by the Qt Dialog...
     //
@@ -75,7 +75,7 @@ public:
     this->m_Filter->SetBeta( 128 );
     this->m_Filter->SetOutputMinimum(   0 );
     this->m_Filter->SetOutputMaximum( 255 );
-	  }
+    }
 
 private:
 
@@ -87,14 +87,14 @@ private:
 #define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
-    SigmoidSpecialized< c_pixel_type > runner( &callback ); \
+    PluginSpecialized< c_pixel_type > runner( &callback ); \
     runner.Execute( menu_name, parent ); \
     break; \
     } 
 
  
 void SigmoidPlugin::dofunc(const QString & func_name,
-		const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
+    const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
   // empty by now
 }
@@ -108,14 +108,14 @@ void SigmoidPlugin::domenu(const QString & menu_name, V3DPluginCallback & callba
     return;
     }
 
-	v3dhandle curwin = callback.currentImageWindow();
-	if (!curwin)
+  v3dhandle curwin = callback.currentImageWindow();
+  if (!curwin)
     {
-		v3d_msg(tr("You don't have any image open in the main window."));
-		return;
+    v3d_msg(tr("You don't have any image open in the main window."));
+    return;
     }
 
-	Image4DSimple *p4DImage = callback.getImage(curwin);
+  Image4DSimple *p4DImage = callback.getImage(curwin);
   if (! p4DImage)
     {
     v3d_msg(tr("The input image is null."));
