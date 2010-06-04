@@ -44,6 +44,8 @@ protected:
   void SetOutputImage( Output2DImageType * image );
   void SetOutputImage( Output3DImageType * image );
 
+  bool ShouldGenerateNewWindow() const;
+
 private:
 
   typedef itk::ImportImageFilter< InputPixelType, 2 > Import2DFilterType;

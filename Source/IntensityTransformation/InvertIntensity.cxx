@@ -55,7 +55,10 @@ public:
 
     filter->SetInput( this->GetInput3DImage() );
 
-    filter->InPlaceOn();
+    if( !this->ShouldGenerateNewWindow() )
+      {
+      filter->InPlaceOn();
+      }
     
     std::cout << "Before filter->Update()" << std::endl;
     filter->Update();

@@ -3,10 +3,6 @@
 
 #include "V3DITKFilterSingleImage.h"
 
-// DEBUG
-#include "itkImageFileWriter.h"
-// DEBUG
-
 
 template <typename TInputPixelType, typename TOutputPixelType>
 V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
@@ -43,11 +39,6 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   this->m_NumberOfPixelsAlongY = this->m_4DImage->getYDim();
   this->m_NumberOfPixelsAlongZ = this->m_4DImage->getZDim();
   this->m_NumberOfChannels =     this->m_4DImage->getCDim();
-
-  std::cout << "Nx = " << this->m_NumberOfPixelsAlongX << std::endl;
-  std::cout << "Ny = " << this->m_NumberOfPixelsAlongY << std::endl;
-  std::cout << "Nz = " << this->m_NumberOfPixelsAlongZ << std::endl;
-  std::cout << "Nc = " << this->m_NumberOfChannels     << std::endl;
 }
 
 template <typename TInputPixelType, typename TOutputPixelType>
@@ -98,8 +89,6 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   region.SetIndex( start );
   region.SetSize(  size  );
   
-  std::cout << "Region = " << region  << std::endl;
-
   this->m_Impor3DFilter->SetRegion( region );
   
   region.SetSize( size );
@@ -126,6 +115,15 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   this->m_Impor3DFilter->Update();
 }
       
+
+template <typename TInputPixelType, typename TOutputPixelType>
+bool
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::ShouldGenerateNewWindow() const
+{
+  return this->m_GlobalSetting.b_plugin_dispResInNewWindow;
+}
+
 
 template <typename TInputPixelType, typename TOutputPixelType>
 void
