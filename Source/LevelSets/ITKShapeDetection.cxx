@@ -1,5 +1,5 @@
-/* ITKFastMarching.cxx
- * 2010-06-02: create this program by Yang Yu
+/* ITKShapeDetection.cxx
+ * 2010-06-03: create this program by Yang Yu
  */
 
 #include <QtGui>
@@ -7,11 +7,11 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "ITKFastMarching.h"
+#include "ITKShapeDetection.h"
 
 // ITK Header Files
 #include "itkImage.h"
-#include "itkFastMarchingImageFilter.h"
+
 #include "itkImportImageFilter.h"
 #include "itkCastImageFilter.h"
 
@@ -22,42 +22,45 @@
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 
+#include "itkFastMarchingImageFilter.h"
+#include "itkShapeDetectionLevelSetImageFilter.h"
+
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(ITKFastMarching, ITKFastMarchingPlugin)
+Q_EXPORT_PLUGIN2(ITKShapeDetection, ITKShapeDetectionPlugin)
 
-void itkFastMarchingPlugin(V3DPluginCallback &callback, QWidget *parent);
+void itkShapeDetectionPlugin(V3DPluginCallback &callback, QWidget *parent);
 
 //plugin funcs
-const QString title = "ITK FastMarching";
-QStringList ITKFastMarchingPlugin::menulist() const
+const QString title = "ITK ShapeDetection";
+QStringList ITKShapeDetectionPlugin::menulist() const
 {
-	return QStringList() << QObject::tr("ITK FastMarching")
-	<< QObject::tr("about this plugin");
+	return QStringList() << QObject::tr("ITK ShapeDetection")
+						 << QObject::tr("about this plugin");
 }
 
-void ITKFastMarchingPlugin::domenu(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
+void ITKShapeDetectionPlugin::domenu(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
 {
-    if (menu_name == QObject::tr("ITK FastMarching"))
+    if (menu_name == QObject::tr("ITK ShapeDetection"))
     {
-    	itkFastMarchingPlugin(callback, parent);
+    	itkShapeDetectionPlugin(callback, parent);
     }
 	else if (menu_name == QObject::tr("about this plugin"))
 	{
-		QMessageBox::information(parent, "Version info", "ITK Fast Marching 1.0 (2010-June-02): this plugin is developed by Yang Yu.");
+		QMessageBox::information(parent, "Version info", "ITK Shape Detection 1.0 (2010-June-03): this plugin is developed by Yang Yu.");
 	}
 }
 
 
 template <typename TInputPixelType, typename TOutputPixelType>
-class ITKFastMarchingSpecializaed
+class ITKShapeDetectionSpecializaed
 {
 public:
 	void Execute(V3DPluginCallback &callback, QWidget *parent)
 	{
 		//
-		ITKFastMarchingDialog d(callback, parent);
+		ITKShapeDetectionDialog d(callback, parent);
 		
 		//
 		if (d.exec()!=QDialog::Accepted)
@@ -142,9 +145,9 @@ public:
 			
 			//Generate Speed Image
 			typedef itk::RescaleIntensityImageFilter< OutputImageType, InputImageType >   InvCastFilterType;
-
-			//typedef itk::BinaryThresholdImageFilter< OutputImageType, InputImageType    >    ThresholdingFilterType;
-			//ThresholdingFilterType::Pointer thresholder = ThresholdingFilterType::New();
+			
+			typedef itk::BinaryThresholdImageFilter< OutputImageType, InputImageType    >    ThresholdingFilterType;
+			typename ThresholdingFilterType::Pointer thresholder = ThresholdingFilterType::New();
 			
 			typedef itk::CurvatureAnisotropicDiffusionImageFilter< OutputImageType, OutputImageType >  SmoothingFilterType;
 			typename SmoothingFilterType::Pointer smoothing = SmoothingFilterType::New();
@@ -165,6 +168,10 @@ public:
 			typedef itk::FastMarchingImageFilter< OutputImageType, OutputImageType > FastMarchingFilterType;
 			typename FastMarchingFilterType::Pointer fastMarching = FastMarchingFilterType::New();
 			
+			//ShapeDetection
+			typedef  itk::ShapeDetectionLevelSetImageFilter< OutputImageType, OutputImageType > ShapeDetectionFilterType;
+			typename ShapeDetectionFilterType::Pointer shapeDetection = ShapeDetectionFilterType::New();
+			
 			typedef typename FastMarchingFilterType::NodeContainer	NodeContainer;
 			typedef typename FastMarchingFilterType::NodeType		NodeType;
 			typename NodeContainer::Pointer seeds = NodeContainer::New();
@@ -174,7 +181,8 @@ public:
 			NodeType node;
 			
 			//set \pars
-			const double seedValue = 0.0;
+			const double initialDistance = 15.0; //
+			const double seedValue = - initialDistance;
 			
 			LandmarkList list_landmark_sub=callback.getLandmark(win_list[i1]);
 			if(list_landmark_sub.size()<1)
@@ -184,7 +192,7 @@ public:
 			}
 			else
 			{
-			    //seeds
+				//seeds
 				seeds->Initialize();
 				
 				for(int i=0;  i<list_landmark_sub.size(); i++)
@@ -207,6 +215,9 @@ public:
 			
 			const double alpha =  -1; // SigmoidImageFilter
 			const double beta  =  20;
+			
+			const double curvatureScaling   = 0.5; // Level Set 
+			const double propagationScaling = 1.0; 
 			
 			//consider multiple channels
 			if(channelToFilter==-1)
@@ -250,7 +261,9 @@ public:
 					smoothing->SetInput( castImageFilter->GetOutput() );
 					gradientMagnitude->SetInput( smoothing->GetOutput() );
 					sigmoid->SetInput( gradientMagnitude->GetOutput() );
-					fastMarching->SetInput( sigmoid->GetOutput() );
+					
+					shapeDetection->SetInput( fastMarching->GetOutput() );
+					shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
 					
 					gradientMagnitude->SetSigma(  sigma  );
 					
@@ -263,27 +276,34 @@ public:
 					
 					fastMarching->SetTrialPoints(  seeds  );
 					fastMarching->SetOutputSize( importFilter->GetOutput()->GetBufferedRegion().GetSize() );
-					fastMarching->SetStoppingValue(  stoppingTime  );
+					//fastMarching->SetStoppingValue(  stoppingTime  );
+					fastMarching->SetSpeedConstant( 1.0 );
+					
+					shapeDetection->SetPropagationScaling(  propagationScaling );
+					shapeDetection->SetCurvatureScaling( curvatureScaling ); 
+					
+					shapeDetection->SetMaximumRMSError( 0.02 );
+					shapeDetection->SetNumberOfIterations( stoppingTime );
 					
 					//speedimag
+//					try
+//					{
+//						//smoothing->Update();
+//						//gradientMagnitude->Update();
+//						//sigmoid->Update();
+//					}
+//					catch( itk::ExceptionObject & excp)
+//					{
+//						std::cerr << "Error run this filter." << std::endl;
+//						std::cerr << excp << std::endl;
+//						return;
+//					}
+					
+					shapeDetection->GetOutput()->GetPixelContainer()->SetImportPointer( p, pagesz, filterWillDeleteTheInputBuffer);
+					
 					try
 					{
-						smoothing->Update();
-						gradientMagnitude->Update();
-						sigmoid->Update();
-					}
-					catch( itk::ExceptionObject & excp)
-					{
-						std::cerr << "Error run this filter." << std::endl;
-						std::cerr << excp << std::endl;
-						return;
-					}
-					
-					fastMarching->GetOutput()->GetPixelContainer()->SetImportPointer( p, pagesz, filterWillDeleteTheInputBuffer);
-					
-					try
-					{
-						fastMarching->Update();
+						shapeDetection->Update();
 					}
 					catch( itk::ExceptionObject & excp)
 					{
@@ -317,11 +337,13 @@ public:
 				smoothing->SetInput( castImageFilter->GetOutput() );
 				gradientMagnitude->SetInput( smoothing->GetOutput() );
 				sigmoid->SetInput( gradientMagnitude->GetOutput() );
-				fastMarching->SetInput( sigmoid->GetOutput() );
+				
+				shapeDetection->SetInput( fastMarching->GetOutput() );
+				shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
 				
 				gradientMagnitude->SetSigma(  sigma  );
 				
-				smoothing->SetTimeStep( 0.05 );
+				smoothing->SetTimeStep( 0.05 ); // less than 0.625 for 3D less than 0.125 for 2D
 				smoothing->SetNumberOfIterations(  5 );
 				smoothing->SetConductanceParameter( 3.0 );
 				
@@ -333,41 +355,78 @@ public:
 				
 				fastMarching->SetTrialPoints(  seeds  );
 				fastMarching->SetOutputSize( importFilter->GetOutput()->GetBufferedRegion().GetSize() );
-				fastMarching->SetStoppingValue(  stoppingTime  );
-							
+				//fastMarching->SetStoppingValue(  stoppingTime  );
+				fastMarching->SetSpeedConstant( 1.0 );
+				
+				shapeDetection->SetPropagationScaling(  propagationScaling );
+				shapeDetection->SetCurvatureScaling( curvatureScaling ); 
+				
+				shapeDetection->SetMaximumRMSError( 0.02 );
+				shapeDetection->SetNumberOfIterations( stoppingTime ); //
+				
+				
 				//speedimag
-				typename InvCastFilterType::Pointer caster = InvCastFilterType::New();
-				caster->SetInput( sigmoid->GetOutput() );
-
-				try
-				{
-					//smoothing->Update();
-					//gradientMagnitude->Update();
-					//sigmoid->Update();
-					caster->Update();
-
-				}
-				catch( itk::ExceptionObject & excp)
-				{
-					std::cerr << "Error run this filter." << std::endl;
-					std::cerr << excp << std::endl;
-					return;
-				}
+//				typename InvCastFilterType::Pointer caster = InvCastFilterType::New();
+//				caster->SetInput( sigmoid->GetOutput() );
 				
-				typename InputImageType::PixelContainer * container1;
+//				try
+//				{
+//					//smoothing->Update();
+//					//gradientMagnitude->Update();
+//					//sigmoid->Update();
+//					//caster->Update();
+//					
+//				}
+//				catch( itk::ExceptionObject & excp)
+//				{
+//					std::cerr << "Error run this filter." << std::endl;
+//					std::cerr << excp << std::endl;
+//					return;
+//				}
 				
-				container1 =caster->GetOutput()->GetPixelContainer();
-				container1->SetContainerManageMemory( false );
+//				typename InputImageType::PixelContainer * container1;
+//				
+//				container1 =caster->GetOutput()->GetPixelContainer();
+//				container1->SetContainerManageMemory( false );
+//				
+//				typedef TInputPixelType InputPixelType;
+//				InputPixelType * output1d_speed = container1->GetImportPointer();
+//				
+//				setPluginOutputAndDisplayUsingGlobalSetting(output1d_speed, nx, ny, nz, 1, callback);
 				
-				typedef TInputPixelType InputPixelType;
-				InputPixelType * output1d_speed = container1->GetImportPointer();
-
-				setPluginOutputAndDisplayUsingGlobalSetting(output1d_speed, nx, ny, nz, 1, callback);
-
 				//fastmarching
+//				try
+//				{
+//					fastMarching->Update();
+//				}
+//				catch( itk::ExceptionObject & excp)
+//				{
+//					std::cerr << "Error run this filter." << std::endl;
+//					std::cerr << excp << std::endl;
+//					return;
+//				}
+//				typename OutputImageType::PixelContainer * container1;
+//				
+//				container1 =fastMarching->GetOutput()->GetPixelContainer();
+//				container1->SetContainerManageMemory( false );
+//				
+//				typedef TOutputPixelType OutputPixelType;
+//				OutputPixelType * output1d_fm = container1->GetImportPointer();
+//				
+//				setPluginOutputAndDisplayUsingGlobalSetting(output1d_fm, nx, ny, nz, 1, callback);
+				
+				thresholder->SetInput( shapeDetection->GetOutput() );
+				
+				thresholder->SetLowerThreshold( -1000.0 );
+				thresholder->SetUpperThreshold(     0.0 );
+				
+				thresholder->SetOutsideValue(  0  );
+				thresholder->SetInsideValue(  255 );
+				
+				//shapedetection
 				try
 				{
-					fastMarching->Update();
+					thresholder->Update();
 				}
 				catch( itk::ExceptionObject & excp)
 				{
@@ -375,29 +434,37 @@ public:
 					std::cerr << excp << std::endl;
 					return;
 				}
-
-				// output
-				typename OutputImageType::PixelContainer * container;
 				
-				container =fastMarching->GetOutput()->GetPixelContainer();
+				// output
+				typename InputImageType::PixelContainer * container;
+				
+				container =thresholder->GetOutput()->GetPixelContainer();
 				container->SetContainerManageMemory( false );
 				
-				typedef TOutputPixelType OutputPixelType;
-				OutputPixelType * output1d = container->GetImportPointer();
+				typedef TInputPixelType InputPixelType;
+				InputPixelType * output1d = container->GetImportPointer();
 				
 				setPluginOutputAndDisplayUsingGlobalSetting(output1d, nx, ny, nz, 1, callback);
+				
 			}
-
+			
+			std::cout << std::endl;
+			std::cout << "Max. no. iterations: " << shapeDetection->GetNumberOfIterations() << std::endl;
+			std::cout << "Max. RMS error: " << shapeDetection->GetMaximumRMSError() << std::endl;
+			std::cout << std::endl;
+			std::cout << "No. elpased iterations: " << shapeDetection->GetElapsedIterations() << std::endl;
+			std::cout << "RMS change: " << shapeDetection->GetRMSChange() << std::endl;
 		}
 		
 	}	
+		
 	
 };
 
 #define EXECUTE( v3d_pixel_type, input_pixel_type, output_pixel_type ) \
 	case v3d_pixel_type: \
 	{ \
-		ITKFastMarchingSpecializaed< input_pixel_type, output_pixel_type > runner; \
+		ITKShapeDetectionSpecializaed< input_pixel_type, output_pixel_type > runner; \
 		runner.Execute( callback, parent ); \
 		break; \
 	} 
@@ -416,7 +483,7 @@ public:
 	}  
 
 
-void itkFastMarchingPlugin(V3DPluginCallback &callback, QWidget *parent)
+void itkShapeDetectionPlugin(V3DPluginCallback &callback, QWidget *parent)
 {
 	Image4DSimple* p4DImage = callback.getImage(callback.currentImageWindow());
 	if (!p4DImage)
