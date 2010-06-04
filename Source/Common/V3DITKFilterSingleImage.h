@@ -6,6 +6,19 @@
 #include "itkImportImageFilter.h"
 
 
+#define EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES \
+    ImagePixelType pixelType = p4DImage->getDatatype(); \
+    switch( pixelType )  \
+      {  \
+      EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( V3D_UINT8, unsigned char );  \
+      EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( V3D_UINT16, unsigned short int );  \
+      EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( V3D_FLOAT32, float );  \
+      case V3D_UNKNOWN:  \
+        {  \
+        }  \
+      }  
+
+
 template <typename TInputPixelType, typename TOutputPixelType>
 class V3DITKFilterSingleImage
 {
@@ -73,6 +86,7 @@ private:
   typename Output3DImageType::Pointer       m_Output3DImage;
 
 };
+
 
 #include "V3DITKFilterSingleImage.txx"
 
