@@ -76,7 +76,7 @@ public:
 		// just search the respective .h file for the itkSetMacro for parameters
 		
 		V3D_Simple_Parameter_Dialog d;
-		d.addParameterLine( "Background Value", unsigned char);
+		d.addParameterLine( "Background Value", unsigned char);	
 		
 		this->m_Filter->SetBackgroundValue( 0 );  
 		this->m_Filter->SetNumberOfObjects( 10 ); //only output 10 objects
