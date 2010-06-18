@@ -3,4 +3,4 @@ SET(PLUGIN_GROUP_NAME "IntensityTransformations")
 
 CONFIGURE_V3D_PLUGIN(InvertIntensity)
 CONFIGURE_V3D_PLUGIN(Sigmoid)
-
+CONFIGURE_V3D_PLUGIN(Log)
