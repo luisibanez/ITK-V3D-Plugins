@@ -36,6 +36,9 @@ public:
 				break;
 
 			case DoubleInput:
+				s.labelText = labelText;
+				s.qtObj = (void *) new QComboBox(this);
+				((QComboBox *)s.qtObj)->addItems( v.toStringList() );
 				break;
 				
 			case BoolInput:
@@ -46,8 +49,8 @@ public:
 				
 			case ComboInput:
 				s.labelText = labelText;
-				s.qtObj = (void *) new QComboBox(labelText, this);
-				((QCheckBox *)s.qtObj)->setCheckState( (v.toBool() ) ? Qt::Checked : Qt::Unchecked() );
+				s.qtObj = (void *) new QComboBox(this);
+				((QComboBox *)s.qtObj)->addItems( v.toStringList() );
 				break;
 				
 			default:

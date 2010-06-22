@@ -97,7 +97,7 @@ void AtanPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback,
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK Atan 1.0 (2010-May-12): this plugin is developed by Sophie Chen.");
+    QMessageBox::information(parent, "Version info", "ITK Atan 1.0 (2010-Jun-21): this plugin is developed by Sophie Chen.");
     return;
     }
 
