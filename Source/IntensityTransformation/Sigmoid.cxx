@@ -104,7 +104,7 @@ void SigmoidPlugin::domenu(const QString & menu_name, V3DPluginCallback & callba
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK Sigmoid 1.0 (2010-May-12): this plugin is developed by Luis Ibanez.");
+    QMessageBox::information(parent, "Version info", "ITK Sigmoid 1.0 (2010-Jun-21): this plugin is developed by Luis Ibanez.");
     return;
     }
 
