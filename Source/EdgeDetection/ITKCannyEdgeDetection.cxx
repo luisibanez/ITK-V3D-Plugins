@@ -170,9 +170,8 @@ public:
 		// ThresholdImageFilter
 		
 		float var = 10.0;
-		float maxerr = 0.5; //Maximum Error Must be in the range [ 0.0 , 1.0 ]
-		unsigned char th = 25;
-		
+		float maxerr = 0.5; //0.5  //Maximum Error Must be in the range [ 0.0 , 1.0 ]
+
 		//input
 		//update the pixel value
 		ITKCannyEdgeDetectionDialog d(callback, parent);
@@ -184,6 +183,11 @@ public:
 		else
 		{
 			
+                  unsigned char lowerTh = d.sbLowerThreshold->value();
+                  unsigned char upperTh = d.sbUpperThreshold->value();
+                  printf("Thresholds: lower=%d, upper=%d\n", (int)lowerTh, (int)upperTh);
+		
+
 			//consider multiple channels
 			if(channelToFilter==-1)
 			{
@@ -224,7 +228,8 @@ public:
 					
 					cannyedgedetectionFilter->SetVariance(var);
 					cannyedgedetectionFilter->SetMaximumError(maxerr);
-					cannyedgedetectionFilter->SetThreshold(th);
+					cannyedgedetectionFilter->SetLowerThreshold(lowerTh);
+					cannyedgedetectionFilter->SetUpperThreshold(upperTh);
 					
 					cannyedgedetectionFilter->GetOutput()->GetPixelContainer()->SetImportPointer( p, pagesz, filterWillDeleteTheInputBuffer);
 					
@@ -263,7 +268,8 @@ public:
 				
 				cannyedgedetectionFilter->SetVariance(var);
 				cannyedgedetectionFilter->SetMaximumError(maxerr);
-				cannyedgedetectionFilter->SetThreshold(th);
+				cannyedgedetectionFilter->SetLowerThreshold(lowerTh);
+				cannyedgedetectionFilter->SetUpperThreshold(upperTh);
 				
 				try
 				{

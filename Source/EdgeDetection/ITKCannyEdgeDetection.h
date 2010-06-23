@@ -40,14 +40,35 @@ public:
 		
 		if (! p4DImage) return;
 		
-		printf("Passing data to data1d\n");
+		printf("[ITKCannyEdgeDetectionDialog] Passing data to data1d\n");
 		
 		ok     = new QPushButton("OK");
 		cancel = new QPushButton("Cancel");
+
+                labelLowerThreshold = new QLabel();
+                labelLowerThreshold->setObjectName(QString::fromUtf8("LowerThreshold"));
+                labelLowerThreshold->setText(QApplication::translate("MainWindow", "Lower Threshold", 0, QApplication::UnicodeUTF8));
+                sbLowerThreshold = new QSpinBox();
+                sbLowerThreshold->setObjectName(QString::fromUtf8("sbLowerThreshold"));
+                sbLowerThreshold->setGeometry(QRect(130, 60, 55, 27));
+                sbLowerThreshold->setMaximum(255);
 		
+                labelUpperThreshold = new QLabel();
+                labelUpperThreshold->setObjectName(QString::fromUtf8("UpperThreshold"));
+                labelUpperThreshold->setText(QApplication::translate("MainWindow", "Upper Threshold", 0, QApplication::UnicodeUTF8));
+                sbUpperThreshold = new QSpinBox();
+                sbUpperThreshold->setObjectName(QString::fromUtf8("sbUpperThreshold"));
+                sbUpperThreshold->setGeometry(QRect(130, 60, 55, 27));
+                sbUpperThreshold->setMaximum(255);
+
 		gridLayout = new QGridLayout();
 		
-		gridLayout->addWidget(cancel, 0,0); gridLayout->addWidget(ok, 0,1);
+		gridLayout->addWidget(cancel, 0,0);
+                gridLayout->addWidget(ok, 0,1);
+                gridLayout->addWidget(labelLowerThreshold, 1,0);
+                gridLayout->addWidget(sbLowerThreshold, 1,1);
+                gridLayout->addWidget(labelUpperThreshold, 2,0);
+                gridLayout->addWidget(sbUpperThreshold, 2,1);
 		setLayout(gridLayout);
 		setWindowTitle(QString("Canny Edge Detection"));
 		
@@ -65,6 +86,10 @@ public:
 	
 	QPushButton* ok;
 	QPushButton* cancel;
+        QLabel* labelLowerThreshold;
+        QLabel* labelUpperThreshold;
+        QSpinBox* sbLowerThreshold;
+        QSpinBox* sbUpperThreshold;
 };
 
 
