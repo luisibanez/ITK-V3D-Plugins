@@ -68,8 +68,8 @@ public:
   
   virtual void SetupParameters()
     {
-    this->m_Filter->I;
-    this->m_Filter->J;
+    this->m_Filter->I(0);
+    this->m_Filter->J(0);
     }
 
 private:

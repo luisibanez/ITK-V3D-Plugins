@@ -68,7 +68,7 @@ public:
   
   virtual void SetupParameters()
     {
-    this->m_Filter->Calculator;
+    this->m_Filter->Calculator(1);
     }
 
 private:
