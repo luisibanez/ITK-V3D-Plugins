@@ -68,8 +68,14 @@ public:
   
   virtual void SetupParameters()
     {
+    typedef FilterType::ChangeMapType;
+    ChangeMapType changeMap;
+
     // These values should actually be provided by the Qt Dialog...
-    this->m_Filter->ChangeMap(2);
+    // changeMap[57] = 81;
+    // changeMap[13] = 27;
+
+    this->m_Filter->ChangeMap( changeMap );
     }
 
 private:
