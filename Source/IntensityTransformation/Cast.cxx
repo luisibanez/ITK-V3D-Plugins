@@ -3,26 +3,26 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "CastImage.h"
+#include "Cast.h"
 #include "V3DITKFilterSingleImage.h"
 
 // ITK Header Files
-#include "itkCastImageImageFilter.h"
+#include "itkCastImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(CastImage, CastImagePlugin)
+Q_EXPORT_PLUGIN2(Cast, CastPlugin)
 
 
-QStringList CastImagePlugin::menulist() const
+QStringList CastPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK CastImage")
+    return QStringList() << QObject::tr("ITK Cast")
             << QObject::tr("about this plugin");
 }
 
-QStringList CastImagePlugin::funclist() const
+QStringList CastPlugin::funclist() const
 {
     return QStringList();
 }
@@ -34,7 +34,7 @@ class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType
   typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
 
-  typedef itk::CastImageImageFilter< ImageType, ImageType > FilterType;
+  typedef itk::CastImageFilter< ImageType, ImageType > FilterType;
 
 public:
 
@@ -86,18 +86,18 @@ private:
     } 
 
  
-void CastImagePlugin::dofunc(const QString & func_name,
+void CastPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
   // empty by now
 }
 
 
-void CastImagePlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+void CastPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK CastImage 1.0 (2010-Jun-21): this plugin is developed by Sophie Chen.");
+    QMessageBox::information(parent, "Version info", "ITK Cast 1.0 (2010-Jun-21): this plugin is developed by Sophie Chen.");
     return;
     }
 

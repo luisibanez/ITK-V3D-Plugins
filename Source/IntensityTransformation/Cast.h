@@ -1,5 +1,5 @@
-#ifndef __CastImage_H__
-#define __CastImage_H__
+#ifndef __Cast_H__
+#define __Cast_H__
 
 
 #include <QtGui>
@@ -9,13 +9,13 @@
 #include <math.h>
 #include <v3d_interface.h>
 
-class CastImagePlugin : public QObject, public V3DPluginInterface
+class CastPlugin : public QObject, public V3DPluginInterface
 {
     Q_OBJECT
     Q_INTERFACES(V3DPluginInterface)
 
 public:
-	CastImagePlugin() {}
+	CastPlugin() {}
   QStringList menulist() const;
 	QStringList funclist() const;
 
