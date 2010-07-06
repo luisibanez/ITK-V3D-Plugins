@@ -3,5 +3,5 @@ SET(PLUGIN_GROUP_NAME "Thresholding")
 CONFIGURE_V3D_PLUGIN(OtsuThreshold)
 CONFIGURE_V3D_PLUGIN(KappaSigmaThreshold)
 
-CONFIGURE_V3D_PLUGIN(ThresholdLabeler)
+#CONFIGURE_V3D_PLUGIN(ThresholdLabeler)
 CONFIGURE_V3D_PLUGIN(BinaryThreshold)
