@@ -102,8 +102,8 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
     return;
     }
 
-  Image4DSimple* p4DImage_fix=callback.getImage(wndlist[0]);
-  Image4DSimple* p4DImage_mov=callback.getImage(wndlist[1]);
+  Image4DSimple* p4DImage_fix = callback.getImage(wndlist[0]);
+  Image4DSimple* p4DImage_mov = callback.getImage(wndlist[1]);
 
 #ifdef CHECK_FOR_IMAGES_TO_HAVE_SAME_SIZE
   if(p4DImage_fix->getXDim()!=p4DImage_mov->getXDim() ||

@@ -7,7 +7,7 @@
 #include "V3DITKFilterSingleImage.h"
 
 // ITK Header Files
-#include "itkNOTImageFilter.h"
+#include "itkNotImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
@@ -34,7 +34,7 @@ class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType
   typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
 
-  typedef itk::NOTImageFilter< ImageType, ImageType > FilterType;
+  typedef itk::NotImageFilter< ImageType, ImageType > FilterType;
 
 public:
 
