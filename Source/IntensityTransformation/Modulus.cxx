@@ -69,7 +69,7 @@ public:
   virtual void SetupParameters()
     {
     // These values should actually be provided by the Qt Dialog...
-    this->m_Filter->Dividend(8);
+    this->m_Filter->SetDividend(8);
     }
 
 private:

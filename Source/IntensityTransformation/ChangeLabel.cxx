@@ -9,7 +9,6 @@
 // ITK Header Files
 #include "itkChangeLabelImageFilter.h"
 
-
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
@@ -68,14 +67,13 @@ public:
   
   virtual void SetupParameters()
     {
-    typedef FilterType::ChangeMapType;
-    ChangeMapType changeMap;
+    //typedef FilterType::ChangeMapType changeMap = FilterType::New();
 
     // These values should actually be provided by the Qt Dialog...
-    // changeMap[57] = 81;
-    // changeMap[13] = 27;
+    //changeMap[57] = 81;
+    //changeMap[13] = 27;
 
-    this->m_Filter->ChangeMap( changeMap );
+    //this->m_Filter->SetChangeMap( changeMap );
     }
 
 private:
@@ -105,7 +103,7 @@ void ChangeLabelPlugin::domenu(const QString & menu_name, V3DPluginCallback & ca
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK ChangeLabel 1.0 (2010-Jun-21): this plugin is developed by Luis Ibanez.");
+    QMessageBox::information(parent, "Version info", "ITK ChangeLabel 1.0 (2010-Jun-21): this plugin is developed by Sophie Chen.");
     return;
     }
 

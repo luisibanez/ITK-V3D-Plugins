@@ -9,11 +9,10 @@
 // ITK Header Files
 #include "itkBoundedReciprocalImageFilter.h"
 
-
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(BoundedReciprocal, AdaptPlugin)
+Q_EXPORT_PLUGIN2(BoundedReciprocal, BoundedReciprocalPlugin)
 
 
 QStringList BoundedReciprocalPlugin::menulist() const

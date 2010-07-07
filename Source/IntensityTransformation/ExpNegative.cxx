@@ -69,7 +69,7 @@ public:
   virtual void SetupParameters()
     {
     // These values should actually be provided by the Qt Dialog...
-    this->m_Filter->Factor(2);
+    this->m_Filter->SetFactor(2);
     }
 
 private:
