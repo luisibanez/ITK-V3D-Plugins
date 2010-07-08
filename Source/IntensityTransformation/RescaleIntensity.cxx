@@ -69,10 +69,8 @@ public:
   virtual void SetupParameters()
     {
     // These values should actually be provided by the Qt Dialog...
-    this->m_Filter->SetFactor(1);
-    this->m_Filter->SetOffset(0);
-    this->m_Filter->SetMaximum(1.0);
-    this->m_Filter->SetMinimum(-1.0);
+    this->m_Filter->SetOutputMaximum(1.0);
+    this->m_Filter->SetOutputMinimum(0);
     }
 
 private:
