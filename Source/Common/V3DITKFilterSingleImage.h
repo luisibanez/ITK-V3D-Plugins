@@ -10,9 +10,61 @@
     ImagePixelType pixelType = p4DImage->getDatatype(); \
     switch( pixelType )  \
       {  \
-      EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( V3D_UINT8, unsigned char );  \
-      EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( V3D_UINT16, unsigned short int );  \
-      EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( V3D_FLOAT32, float );  \
+      EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( V3D_UINT8, unsigned char );  \
+      EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( V3D_UINT16, unsigned short int );  \
+      EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( V3D_FLOAT32, float );  \
+      case V3D_UNKNOWN:  \
+        {  \
+        }  \
+      }  
+
+#define EXECUTE_PLUGIN_FOR_INTEGER_PIXEL_TYPES \
+    ImagePixelType pixelType = p4DImage->getDatatype(); \
+    switch( pixelType )  \
+      {  \
+      EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( V3D_UINT8, unsigned char );  \
+      EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( V3D_UINT16, unsigned short int );  \
+      case V3D_UNKNOWN:  \
+        {  \
+        }  \
+      }  
+
+
+#define EXECUTE_PLUGIN_FOR_ALL_INPUT_AND_OUTPUT_PIXEL_TYPES \
+    ImagePixelType inputPixelType = p4DImage->getDatatype(); \
+    ImagePixelType outputPixelType = p4DImage->getDatatype(); \
+    switch( inputPixelType )  \
+      {  \
+      case V3D_UINT8: \
+        switch( outputPixelType )  \
+          {  \
+          EXECUTE_PLUGIN_FOR_INPUT_AND_OUTPUT_IMAGE_TYPE( V3D_UINT8, V3D_UINT8, unsigned char, unsigned char );  \
+          EXECUTE_PLUGIN_FOR_INPUT_AND_OUTPUT_IMAGE_TYPE( V3D_UINT8, V3D_UINT16, unsigned char, unsigned short int );  \
+          EXECUTE_PLUGIN_FOR_INPUT_AND_OUTPUT_IMAGE_TYPE( V3D_UINT8, V3D_FLOAT32, unsigned char, float );  \
+          case V3D_UNKNOWN:  \
+            {  \
+            }  \
+          } \
+      case V3D_UINT16: \
+        switch( outputPixelType )  \
+          {  \
+          EXECUTE_PLUGIN_FOR_INPUT_AND_OUTPUT_IMAGE_TYPE( V3D_UINT16, V3D_UINT8, unsigned short int, unsigned char );  \
+          EXECUTE_PLUGIN_FOR_INPUT_AND_OUTPUT_IMAGE_TYPE( V3D_UINT16, V3D_UINT16, unsigned short int, unsigned short int );  \
+          EXECUTE_PLUGIN_FOR_INPUT_AND_OUTPUT_IMAGE_TYPE( V3D_UINT16, V3D_FLOAT32, unsigned short int, float );  \
+          case V3D_UNKNOWN:  \
+            {  \
+            }  \
+          } \
+      case V3D_FLOAT32: \
+        switch( outputPixelType )  \
+          {  \
+          EXECUTE_PLUGIN_FOR_INPUT_AND_OUTPUT_IMAGE_TYPE( V3D_FLOAT32, V3D_UINT8, float, unsigned char );  \
+          EXECUTE_PLUGIN_FOR_INPUT_AND_OUTPUT_IMAGE_TYPE( V3D_FLOAT32, V3D_UINT16, float, unsigned short int );  \
+          EXECUTE_PLUGIN_FOR_INPUT_AND_OUTPUT_IMAGE_TYPE( V3D_FLOAT32, V3D_FLOAT32, float, float );  \
+          case V3D_UNKNOWN:  \
+            {  \
+            }  \
+          } \
       case V3D_UNKNOWN:  \
         {  \
         }  \

@@ -10,9 +10,9 @@
     ImagePixelType pixelType = p4DImage->getDatatype(); \
     switch( pixelType )  \
       {  \
-      EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( V3D_UINT8, unsigned char );  \
-      EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( V3D_UINT16, unsigned short int );  \
-      EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( V3D_FLOAT32, float );  \
+      EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( V3D_UINT8, unsigned char );  \
+      EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( V3D_UINT16, unsigned short int );  \
+      EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( V3D_FLOAT32, float );  \
       case V3D_UNKNOWN:  \
         {  \
         }  \

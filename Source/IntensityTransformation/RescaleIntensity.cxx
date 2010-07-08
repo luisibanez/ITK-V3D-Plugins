@@ -28,13 +28,14 @@ QStringList RescaleIntensityPlugin::funclist() const
 }
 
 
-template <typename TPixelType>
-class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType >
+template <typename TInputPixelType, typename TOutputPixelType>
+class PluginSpecialized : public V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 {
-  typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
-  typedef typename Superclass::Input3DImageType               ImageType;
+  typedef V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >   Superclass;
+  typedef itk::Image< TInputPixelType, 3 >           InputImageType;
+  typedef itk::Image< TOutputPixelType, 3 >          OutputImageType;
 
-  typedef itk::RescaleIntensityImageFilter< ImageType, ImageType > FilterType;
+  typedef itk::RescaleIntensityImageFilter< InputImageType, OutputImageType > FilterType;
 
 public:
 
@@ -69,10 +70,8 @@ public:
   virtual void SetupParameters()
     {
     // These values should actually be provided by the Qt Dialog...
-    this->m_Filter->Factor(1);
-    this->m_Filter->Offset(0);
-    this->m_Filter->Maximum(1.0);
-    this->m_Filter->Minimum(-1.0);
+    this->m_Filter->SetOutputMaximum( 255.0 );
+    this->m_Filter->SetOutputMinimum(   0.0 );
     }
 
 private:
@@ -82,10 +81,10 @@ private:
 };
 
 
-#define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
-  case v3d_pixel_type: \
+#define EXECUTE_PLUGIN_FOR_INPUT_AND_OUTPUT_IMAGE_TYPE( v3d_input_pixel_type, v3d_output_pixel_type, c_input_pixel_type, c_output_pixel_type ) \
+  case v3d_output_pixel_type: \
     { \
-    PluginSpecialized< c_pixel_type > runner( &callback ); \
+    PluginSpecialized< c_input_pixel_type, c_output_pixel_type > runner( &callback ); \
     runner.Execute( menu_name, parent ); \
     break; \
     } 
@@ -120,6 +119,6 @@ void RescaleIntensityPlugin::domenu(const QString & menu_name, V3DPluginCallback
     return;
     }
 
-  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES; 
+  EXECUTE_PLUGIN_FOR_ALL_INPUT_AND_OUTPUT_PIXEL_TYPES;
 }
 

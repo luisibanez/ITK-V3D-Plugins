@@ -13,7 +13,7 @@
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(BoundedReciprocal, AdaptPlugin)
+Q_EXPORT_PLUGIN2(BoundedReciprocal, BoundedReciprocalPlugin)
 
 
 QStringList BoundedReciprocalPlugin::menulist() const
@@ -77,7 +77,7 @@ private:
 };
 
 
-#define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
+#define EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
     PluginSpecialized< c_pixel_type > runner( &callback ); \

@@ -86,7 +86,7 @@ private:
 };
 
 
-#define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
+#define EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
 case v3d_pixel_type: \
 { \
 MySpecialized< c_pixel_type, c_pixel_type > runner( &callback ); \

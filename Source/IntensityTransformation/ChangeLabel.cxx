@@ -68,14 +68,14 @@ public:
   
   virtual void SetupParameters()
     {
-    typedef FilterType::ChangeMapType;
+    typedef typename FilterType::ChangeMapType   ChangeMapType;
     ChangeMapType changeMap;
 
     // These values should actually be provided by the Qt Dialog...
     // changeMap[57] = 81;
     // changeMap[13] = 27;
 
-    this->m_Filter->ChangeMap( changeMap );
+    this->m_Filter->SetChangeMap( changeMap );
     }
 
 private:
@@ -85,7 +85,7 @@ private:
 };
 
 
-#define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
+#define EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
     PluginSpecialized< c_pixel_type > runner( &callback ); \

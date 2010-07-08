@@ -8,6 +8,7 @@
 
 // ITK Header Files
 #include "itkEdgePotentialImageFilter.h"
+#include "itkGradientRecursiveGaussianImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
@@ -34,13 +35,17 @@ class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType
   typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
 
-  typedef itk::EdgePotentialImageFilter< ImageType, ImageType > FilterType;
+  typedef itk::Image< itk::CovariantVector< float, 3 >, 3 >   GradientImageType;
+
+  typedef itk::GradientRecursiveGaussianImageFilter< ImageType, GradientImageType > GradientFilterType;
+  typedef itk::EdgePotentialImageFilter< GradientImageType, ImageType > EdgePotentialFilterType;
 
 public:
 
   PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
-    this->m_Filter = FilterType::New();
+    this->m_EdgePotentialFilter = EdgePotentialFilterType::New();
+    this->m_GradientFilter = GradientFilterType::New();
     }
 
   virtual ~PluginSpecialized() {};
@@ -54,16 +59,12 @@ public:
   virtual void ComputeOneRegion()
     {
 
-    this->m_Filter->SetInput( this->GetInput3DImage() );
+    this->m_GradientFilter->SetInput( this->GetInput3DImage() );
+    this->m_EdgePotentialFilter->SetInput( this->m_GradientFilter->GetOutput() );
 
-    if( !this->ShouldGenerateNewWindow() )
-      {
-      this->m_Filter->InPlaceOn();
-      }
-    
-    this->m_Filter->Update();
+    this->m_EdgePotentialFilter->Update();
 
-    this->SetOutputImage( this->m_Filter->GetOutput() );
+    this->SetOutputImage( this->m_EdgePotentialFilter->GetOutput() );
     }
   
   virtual void SetupParameters()
@@ -74,12 +75,13 @@ public:
 
 private:
 
-    typename FilterType::Pointer   m_Filter;
+    typename EdgePotentialFilterType::Pointer  m_EdgePotentialFilter;
+    typename GradientFilterType::Pointer       m_GradientFilter;
 
 };
 
 
-#define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
+#define EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
     PluginSpecialized< c_pixel_type > runner( &callback ); \

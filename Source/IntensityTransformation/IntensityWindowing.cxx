@@ -69,12 +69,13 @@ public:
   virtual void SetupParameters()
     {
     // These values should actually be provided by the Qt Dialog...
-    this->m_Filter->Factor(1);
-    this->m_Filter->Offset(1);
-    this->m_Filter->OutputMaximum(1.0);
-    this->m_Filter->OutputMinimum(-1.0);
-    this->m_Filter->WindowMaximum(50.0);
-    this->m_Filter->WindowMinimum(-50.0);
+    this->m_Filter->SetOutputMaximum(1.0);
+    this->m_Filter->SetOutputMinimum(0.0);
+    this->m_Filter->SetWindowMaximum(50.0);
+    this->m_Filter->SetWindowMinimum(0.0);
+
+    // this->m_Filter->SetFactor( 1 ); FIXME These two are redundant.
+    // this->m_Filter->SetOffset( 1 );
     }
 
 private:
@@ -84,7 +85,7 @@ private:
 };
 
 
-#define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
+#define EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
     PluginSpecialized< c_pixel_type > runner( &callback ); \

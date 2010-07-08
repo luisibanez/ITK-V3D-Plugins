@@ -69,7 +69,7 @@ public:
   virtual void SetupParameters()
     {
     // These values should actually be provided by the Qt Dialog...
-    this->m_Filter->Dividend(8);
+    this->m_Filter->SetDividend( 8 );
     }
 
 private:
@@ -79,7 +79,7 @@ private:
 };
 
 
-#define EXECUTE_PLUGING_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
+#define EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
     PluginSpecialized< c_pixel_type > runner( &callback ); \
@@ -117,6 +117,6 @@ void ModulusPlugin::domenu(const QString & menu_name, V3DPluginCallback & callba
     return;
     }
 
-  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES; 
+  EXECUTE_PLUGIN_FOR_INTEGER_PIXEL_TYPES; 
 }
 
