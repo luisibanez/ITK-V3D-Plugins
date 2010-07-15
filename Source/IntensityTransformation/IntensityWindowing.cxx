@@ -73,9 +73,6 @@ public:
     this->m_Filter->SetOutputMinimum(0.0);
     this->m_Filter->SetWindowMaximum(50.0);
     this->m_Filter->SetWindowMinimum(0.0);
-
-    // this->m_Filter->SetFactor( 1 ); FIXME These two are redundant.
-    // this->m_Filter->SetOffset( 1 );
     }
 
 private:
