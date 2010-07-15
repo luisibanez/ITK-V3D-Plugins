@@ -18,7 +18,7 @@ Q_EXPORT_PLUGIN2(filterObjectsByShape, ObjectFilter_ShapePlugin)
 
 QStringList ObjectFilter_ShapePlugin::menulist() const
 {
-    return QStringList() << QObject::tr("Relabel Indexed Image Objects")
+    return QStringList() << QObject::tr("Object Filter Shape")
 	<< QObject::tr("about this plugin");
 }
 
