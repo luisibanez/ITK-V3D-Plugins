@@ -3,39 +3,39 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "Relabel.h"
+#include "LabelGeometry.h"
 #include "V3DITKFilterSingleImage.h"
 
 // ITK Header Files
-#include "itkRelabelComponentImageFilter.h"
+#include "itkLabelGeometryImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(BinaryStatisticsOpening, BinaryStatisticsOpeningPlugin)
+Q_EXPORT_PLUGIN2(LabelGeometry, LabelGeometryPlugin)
 
 
-QStringList BinaryStatisticsOpeningPlugin::menulist() const
+QStringList LabelGeometryPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("Relabel Indexed Image Objects")
+    return QStringList() << QObject::tr("ITK LabelGeometryImageFilter")
 	<< QObject::tr("about this plugin");
 }
 
-QStringList BinaryStatisticsOpeningPlugin::funclist() const
+QStringList LabelGeometryPlugin::funclist() const
 {
     return QStringList();
 }
 
 
-template <typename TInPixelType, typename TOutputPixelType>
-class MySpecialized : public V3DITKFilterSingleImage< TInPixelType, TOutputPixelType >
+template <typename TInputPixelType, typename TOutputPixelType>
+class MySpecialized : public V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 {
-	typedef V3DITKFilterSingleImage< TInPixelType, TOutputPixelType >   Superclass;
-	typedef typename Superclass::Input3DImageType               ImageType;
-	typedef typename Superclass::Output3DImageType              OutputImageType;
+	typedef V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >   Superclass;
+  typedef typename Superclass::Input3DImageType               ImageType;
+  typedef typename Superclass::Output3DImageType              OutputImageType;
 	
-	typedef itk::RelabelComponentImageFilter< ImageType, OutputImageType > FilterType;
+  typedef itk::LabelGeometryImageFilter< ImageType, OutputImageType > FilterType;
 	
 public:
 	
@@ -59,27 +59,17 @@ public:
 		
 		if( !this->ShouldGenerateNewWindow() )
 		{
-			this->m_Filter->InPlaceOn();
 		}
 		
 		this->m_Filter->Update();
-		
-		this->SetOutputImage( this->m_Filter->GetOutput() );
     }
 	
 	virtual void SetupParameters()
   	{
 		//
 		// These values should actually be provided by the Qt Dialog...
-		//
+		// just search the respective .h file for the itkSetMacro for parameters
 		
-		this->m_Filter->SetFullyConnected( true );
-    this->m_Filter->SetBackgroundValue( 0 );
-    this->m_Filter->SetForegroundValue( 100 );
-    this->m_Filter->SetLambda( 5.0 );
-    this->m_Filter->SetReverseOrdering( false );
-    this->m_Filter->SetBS(0);    
-    this->m_Filter->SetAttribute( 0 );
 	}
 	
 private:
@@ -98,18 +88,18 @@ break; \
 } 
 
 
-void BinaryStatisticsOpeningPlugin::dofunc(const QString & func_name,
-									 const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
+void LabelGeometryPlugin::dofunc(const QString & func_name,
+				const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
 	// empty by now
 }
 
 
-void BinaryStatisticsOpeningPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+void LabelGeometryPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
 	if (menu_name == QObject::tr("about this plugin"))
     {
-		QMessageBox::information(parent, "Version info", "ITK Relabel Image Objects (Connnected Components) 1.0 (2010-June-4): this plugin is developed by Hanchuan Peng.");
+		QMessageBox::information(parent, "Version info", "ITK LabelGeometry 1.0 (2010-July-15): this plugin is developed by Sophie Chen.");
 		return;
     }
 	

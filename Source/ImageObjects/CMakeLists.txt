@@ -11,6 +11,6 @@ CONFIGURE_V3D_PLUGIN(BinaryStatisticsKeepNObjects)
 CONFIGURE_V3D_PLUGIN(BinaryShapeOpening)
 
 CONFIGURE_V3D_PLUGIN(LabelContour)
-#CONFIGURE_V3D_PLUGIN(BinaryShapeOpening)
+#CONFIGURE_V3D_PLUGIN(LabelGeometry)
 
 

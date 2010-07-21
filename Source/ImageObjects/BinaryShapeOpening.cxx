@@ -68,7 +68,13 @@ public:
 		//
 		// These values should actually be provided by the Qt Dialog...
 		// just search the respective .h file for the itkSetMacro for parameters
-		
+    this->m_Filter->SetFullyConnected( true );
+    this->m_Filter->SetBackgroundValue( 0 );
+    this->m_Filter->SetForegroundValue( 100 );
+    this->m_Filter->SetLambda( 5.0 );
+    this->m_Filter->SetReverseOrdering( false );
+    this->m_Filter->SetAttribute( 0 );
+	
 	}
 	
 private:
