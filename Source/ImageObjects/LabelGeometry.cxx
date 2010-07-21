@@ -69,7 +69,16 @@ public:
 		//
 		// These values should actually be provided by the Qt Dialog...
 		// just search the respective .h file for the itkSetMacro for parameters
-		
+    this->m_Filter->SetCalculatePixelIndices( true );		
+    this->m_Filter->SetCalculateOrientedBoundingBox( true );		
+    this->m_Filter->SetOrientedLabelRegions( true );		
+    this->m_Filter->SetOrientedIntensityRegions( true );		
+
+
+//respectively, MapType, LabelGeometry, LabelsType	
+    this->m_Filter->SetLabelGeometryMapper();
+    this->m_Filter->SetLabelGeometry();
+    this->m_Filter->SetAllLabels();
 	}
 	
 private:
