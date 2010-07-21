@@ -13,4 +13,5 @@ CONFIGURE_V3D_PLUGIN(BinaryShapeOpening)
 CONFIGURE_V3D_PLUGIN(LabelContour)
 #CONFIGURE_V3D_PLUGIN(LabelGeometry)
 
+#CONFIGURE_V3D_PLUGIN(LabelPerimeterEstimationCalculator)
 
