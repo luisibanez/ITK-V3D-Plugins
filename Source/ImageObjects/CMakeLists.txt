@@ -15,3 +15,5 @@ CONFIGURE_V3D_PLUGIN(LabelContour)
 
 #CONFIGURE_V3D_PLUGIN(LabelPerimeterEstimationCalculator)
 
+CONFIGURE_V3D_PLUGIN(ShapeRelabel)
+CONFIGURE_V3D_PLUGIN(StatisticsRelabel)
