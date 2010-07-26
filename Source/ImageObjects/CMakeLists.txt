@@ -8,12 +8,8 @@ CONFIGURE_V3D_PLUGIN(ObjectFilter_Shape)
 CONFIGURE_V3D_PLUGIN(BinaryShapeKeepNObjects)
 CONFIGURE_V3D_PLUGIN(BinaryShapeOpening)
 CONFIGURE_V3D_PLUGIN(BinaryStatisticsKeepNObjects)
-CONFIGURE_V3D_PLUGIN(BinaryShapeOpening)
 
 CONFIGURE_V3D_PLUGIN(LabelContour)
-#CONFIGURE_V3D_PLUGIN(LabelGeometry)
-
-#CONFIGURE_V3D_PLUGIN(LabelPerimeterEstimationCalculator)
 
 CONFIGURE_V3D_PLUGIN(ShapeRelabel)
 CONFIGURE_V3D_PLUGIN(StatisticsRelabel)
