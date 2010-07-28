@@ -48,7 +48,18 @@ public:
 
   void Execute(const QString &menu_name, QWidget *parent)
     {
-    this->Compute();
+    V3DITKGenericDialog dialog("Threshold Labeler");
+
+    dialog.AddDialogElement("Thresholds",2.0, 0.0, 255.0);
+    dialog.AddDialogElement("Label Offset",4.0, 0.0, 255.0);
+
+    if( dialog.exec() == QDialog::Accepted )
+      {
+      this->m_Filter->SetThresholds( dialog.GetValue("Thresholds") );
+      this->m_Filter->SetLabelOffset( dialog.GetValue("Label Offset") );
+
+      this->Compute();
+      }
     }
 
   virtual void ComputeOneRegion()
@@ -66,12 +77,6 @@ public:
     this->SetOutputImage( this->m_Filter->GetOutput() );
     }
 
-  virtual void SetupParameters()
-    {
-    // These values should actually be provided by the Qt Dialog...
-    this->m_Filter->SetThresholds(2);
-    this->m_Filter->SetLabelOffset(4);
-    }
 
 private:
 

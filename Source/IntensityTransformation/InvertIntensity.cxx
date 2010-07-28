@@ -45,10 +45,20 @@ public:
 
   virtual ~PluginSpecialized() {};
 
-  
+
   void Execute(const QString &menu_name, QWidget *parent)
     {
-    this->Compute(); 
+    V3DITKGenericDialog dialog("InvertIntensity");
+
+    dialog.AddDialogElement("Maximum",1.0, 0.0, 255.0);
+
+    if( dialog.exec() == QDialog::Accepted )
+      {
+      this->m_Filter->SetMaximum( dialog.GetValue("Maximum") );
+
+      this->Compute();
+      }
+
     }
 
   virtual void ComputeOneRegion()
@@ -60,20 +70,12 @@ public:
       {
       this->m_Filter->InPlaceOn();
       }
-    
+
     this->m_Filter->Update();
 
     this->SetOutputImage( this->m_Filter->GetOutput() );
     }
-  
-  virtual void SetupParameters()
-    {
-    //
-    // These values should actually be provided by the Qt Dialog...
-    //
-    // this->m_Filter->SetMaximum( 1.0 );
-    //
-    }
+
 
 private:
 
@@ -88,9 +90,9 @@ private:
     PluginSpecialized< c_pixel_type > runner( &callback ); \
     runner.Execute( menu_name, parent ); \
     break; \
-    } 
+    }
 
- 
+
 void InvertIntensityPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
@@ -120,6 +122,6 @@ void InvertIntensityPlugin::domenu(const QString & menu_name, V3DPluginCallback 
     return;
     }
 
-  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES; 
+  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
 }
 

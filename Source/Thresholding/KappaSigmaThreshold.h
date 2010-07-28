@@ -1,9 +1,6 @@
-/* KappaSigmaThreshold.h
- * 2010-06-02: create this program by Lei Qu
- */
+#ifndef __KappaSigmaThreshold_H__
+#define __KappaSigmaThreshold_H__
 
-#ifndef __KAPPASIGMATHRESHOLD_H__
-#define __KAPPASIGMATHRESHOLD_H__
 
 #include <QtGui>
 #include <stdio.h>
@@ -12,58 +9,21 @@
 #include <math.h>
 #include <v3d_interface.h>
 
-class ITKKappaSigmaThresholdPlugin: public QObject, public V3DPluginInterface
+class KappaSigmaThresholdPlugin : public QObject, public V3DPluginInterface
 {
-	Q_OBJECT
-	Q_INTERFACES(V3DPluginInterface)
+    Q_OBJECT
+    Q_INTERFACES(V3DPluginInterface)
 
 public:
-	QStringList menulist() const;
-	void domenu(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent);
+	KappaSigmaThresholdPlugin() {}
+  QStringList menulist() const;
+	QStringList funclist() const;
 
-	QStringList funclist() const {return QStringList();}
-	void dofunc(const QString &func_name, const V3DPluginArgList &input, V3DPluginArgList &output, QWidget *parent) {}
+	void domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent);
 
-};
+	virtual void dofunc(const QString & func_name,
+			const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent);
 
-class ITKKappaSigmaThresholdDialog: public QDialog
-{
-Q_OBJECT
-
-public:
-	ITKKappaSigmaThresholdDialog(Image4DSimple *p4DImage, QWidget *parent)
-	{
-		if (!p4DImage)
-			return;
-
-		printf("Passing data to data1d\n");
-
-		ok = new QPushButton("OK");
-		cancel = new QPushButton("Cancel");
-
-		gridLayout = new QGridLayout();
-
-		gridLayout->addWidget(cancel, 0, 0);
-		gridLayout->addWidget(ok, 0, 1);
-		setLayout( gridLayout);
-		setWindowTitle(QString("KappaSigma Threshold"));
-
-		connect(ok, SIGNAL(clicked()), this, SLOT(accept()));
-		connect(cancel, SIGNAL(clicked()), this, SLOT(reject()));
-	}
-
-	~ITKKappaSigmaThresholdDialog()
-	{
-	}
-
-public slots:
-
-public:
-	QGridLayout *gridLayout;
-
-	QPushButton* ok;
-	QPushButton* cancel;
 };
 
 #endif
-

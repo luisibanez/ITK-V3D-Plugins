@@ -2,6 +2,7 @@
 #define __V3DITKFilterDualImage_H__
 
 #include <v3d_interface.h>
+#include "V3DITKGenericDialog.h"
 #include "itkImage.h"
 #include "itkImportImageFilter.h"
 
@@ -16,14 +17,14 @@
       case V3D_UNKNOWN:  \
         {  \
         }  \
-      }  
+      }
 
 
 template <typename TInputPixelType, typename TOutputPixelType>
 class V3DITKFilterDualImage
 {
 public:
-  
+
   typedef TInputPixelType                   InputPixelType;
   typedef itk::Image< InputPixelType, 2 >   Input2DImageType;
   typedef itk::Image< InputPixelType, 3 >   Input3DImageType;
@@ -33,7 +34,7 @@ public:
   typedef itk::Image< OutputPixelType, 3 >  Output3DImageType;
 
 public:
-  
+
   V3DITKFilterDualImage( V3DPluginCallback * callback );
   virtual ~V3DITKFilterDualImage();
 
@@ -84,12 +85,12 @@ private:
   Image4DSimple *                           m_4DImage;
 
   InputPixelType *                          m_Data1D;
-      
+
   V3DLONG                                   m_NumberOfPixelsAlongX;
   V3DLONG                                   m_NumberOfPixelsAlongY;
   V3DLONG                                   m_NumberOfPixelsAlongZ;
   V3DLONG                                   m_NumberOfChannels;
- 
+
   typename Output2DImageType::Pointer       m_Output2DImage;
   typename Output3DImageType::Pointer       m_Output3DImage;
 

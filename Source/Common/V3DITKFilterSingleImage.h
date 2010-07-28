@@ -2,6 +2,7 @@
 #define __V3DITKFilterSingleImage_H__
 
 #include <v3d_interface.h>
+#include "V3DITKGenericDialog.h"
 #include "itkImage.h"
 #include "itkImportImageFilter.h"
 

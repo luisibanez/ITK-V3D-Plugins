@@ -45,10 +45,25 @@ public:
 
   virtual ~PluginSpecialized() {};
 
-  
+
   void Execute(const QString &menu_name, QWidget *parent)
     {
-    this->Compute(); 
+    V3DITKGenericDialog dialog("IntensityWindowing");
+
+    dialog.AddDialogElement("Output Minimum",0.0, 0.0, 255.0);
+    dialog.AddDialogElement("Output Maximum",255.0, 0.0, 255.0);
+    dialog.AddDialogElement("Window Minimum",0.0, 0.0, 255.0);
+    dialog.AddDialogElement("Window Maximum",255.0, 0.0, 255.0);
+
+    if( dialog.exec() == QDialog::Accepted )
+      {
+      this->m_Filter->SetOutputMinimum( dialog.GetValue("Output Minimum") );
+      this->m_Filter->SetOutputMaximum( dialog.GetValue("Output Maximum") );
+      this->m_Filter->SetWindowMinimum( dialog.GetValue("Window Minimum") );
+      this->m_Filter->SetWindowMaximum( dialog.GetValue("Window Minimum") );
+
+      this->Compute();
+      }
     }
 
   virtual void ComputeOneRegion()
@@ -60,20 +75,12 @@ public:
       {
       this->m_Filter->InPlaceOn();
       }
-    
+
     this->m_Filter->Update();
 
     this->SetOutputImage( this->m_Filter->GetOutput() );
     }
-  
-  virtual void SetupParameters()
-    {
-    // These values should actually be provided by the Qt Dialog...
-    this->m_Filter->SetOutputMaximum(1.0);
-    this->m_Filter->SetOutputMinimum(0.0);
-    this->m_Filter->SetWindowMaximum(50.0);
-    this->m_Filter->SetWindowMinimum(0.0);
-    }
+
 
 private:
 
@@ -88,9 +95,9 @@ private:
     PluginSpecialized< c_pixel_type > runner( &callback ); \
     runner.Execute( menu_name, parent ); \
     break; \
-    } 
+    }
 
- 
+
 void IntensityWindowingPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
@@ -120,6 +127,6 @@ void IntensityWindowingPlugin::domenu(const QString & menu_name, V3DPluginCallba
     return;
     }
 
-  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES; 
+  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
 }
 

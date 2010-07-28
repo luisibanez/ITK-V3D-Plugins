@@ -1,232 +1,127 @@
-/* KappaSigmaThreshold.cxx
- * 2010-06-02: create this program by Lei Qu
- */
-
 #include <QtGui>
 
 #include <math.h>
 #include <stdlib.h>
 
 #include "KappaSigmaThreshold.h"
+#include "V3DITKFilterSingleImage.h"
 
 // ITK Header Files
-#include "itkImportImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
 #include "itkKappaSigmaThresholdImageFilter.h"
-#include "itkImageFileWriter.h"
+
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(KappaSigmaThreshold, ITKKappaSigmaThresholdPlugin)
+Q_EXPORT_PLUGIN2(KappaSigmaThreshold, KappaSigmaThresholdPlugin)
 
-QStringList ITKKappaSigmaThresholdPlugin::menulist() const
+
+QStringList KappaSigmaThresholdPlugin::menulist() const
 {
-	return QStringList() << QObject::tr("ITK KappaSigmaThreshold ...");
+    return QStringList() << QObject::tr("ITK KappaSigmaThreshold")
+            << QObject::tr("about this plugin");
 }
 
-template<typename TPixelType>
-class ITKKappaSigmaThresholdSpecializaed
+QStringList KappaSigmaThresholdPlugin::funclist() const
 {
+    return QStringList();
+}
+
+
+template <typename TPixelType>
+class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType >
+{
+  typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
+  typedef typename Superclass::Input3DImageType               ImageType;
+
+  typedef itk::KappaSigmaThresholdImageFilter< ImageType, ImageType > FilterType;
+
 public:
-	void Execute(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
-	{
-		v3dhandle oldwin = callback.currentImageWindow();
-		Image4DSimple* p4DImage = callback.getImage(oldwin);
-		V3D_GlobalSetting globalSetting = callback.getGlobalSetting();
 
-		const unsigned int Dimension = 3;
-	    int channelToFilter = globalSetting.iChannel_for_plugin;
-	    if( channelToFilter >= p4DImage->getCDim() )
-	      {
-	      v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
-	      return;
-	      }
+  PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
+    {
+    this->m_Filter = FilterType::New();
+    }
 
-		//------------------------------------------------------------------
-		//import image from V3D
-		typedef TPixelType PixelType;
-		typedef itk::Image< PixelType,  Dimension > ImageType_input;
-		typedef itk::ImportImageFilter<PixelType, Dimension> ImportFilterType;
+  virtual ~PluginSpecialized() {};
 
-		typename ImportFilterType::Pointer importFilter = ImportFilterType::New();
 
-		//set ROI region
-		typename ImportFilterType::RegionType region;
-		typename ImportFilterType::IndexType start;
-		start.Fill(0);
-		typename ImportFilterType::SizeType size;
-		size[0] = p4DImage->getXDim();
-		size[1] = p4DImage->getYDim();
-		size[2] = p4DImage->getZDim();
-		region.SetIndex(start);
-		region.SetSize(size);
-		importFilter->SetRegion(region);
+  void Execute(const QString &menu_name, QWidget *parent)
+    {
+    V3DITKGenericDialog dialog("Binary Threshold");
 
-		//set image Origin
-		typename ImageType_input::PointType origin;
-		origin.Fill(0.0);
-		importFilter->SetOrigin(origin);
-		//set spacing
-		typename ImportFilterType::SpacingType spacing;
-		spacing.Fill(1.0);
-		importFilter->SetSpacing(spacing);
+    dialog.AddDialogElement("Sigma Factor", 1.5, 0.1, 10.0);
+    dialog.AddDialogElement("Iterations", 5.0, 1.0, 100.0);
 
-		//set import image pointer
-		PixelType * data1d = reinterpret_cast<PixelType *> (p4DImage->getRawData());
-		unsigned long int numberOfPixels = p4DImage->getTotalBytes();
-		const bool importImageFilterWillOwnTheBuffer = false;
-		importFilter->SetImportPointer(data1d, numberOfPixels,importImageFilterWillOwnTheBuffer);
+    if( dialog.exec() == QDialog::Accepted )
+      {
+      this->m_Filter->SetSigmaFactor( dialog.GetValue("Sigma Factor") );
+      this->m_Filter->SetNumberOfIterations( dialog.GetValue("Iterations") );
 
-		//------------------------------------------------------------------
-		//setup filter: cast datatype to unsigned char for anisotropic process
-		typedef itk::Image< unsigned char, Dimension >   	ImageType_mid;
-		typedef itk::RescaleIntensityImageFilter<ImageType_input, ImageType_mid > RescaleFilterType_input;
+      this->m_Filter->SetInsideValue(255);
+      this->m_Filter->SetOutsideValue(0);
 
-		typename RescaleFilterType_input::Pointer rescaler_8u_32f = RescaleFilterType_input::New();
-		rescaler_8u_32f->SetOutputMinimum(   0 );
-		rescaler_8u_32f->SetOutputMaximum( 255 );
+      this->Compute();
+      }
 
-		//------------------------------------------------------------------
-		//setup filter: Gradient Anisotropic Diffusion
-		typedef itk::KappaSigmaThresholdImageFilter<ImageType_mid,ImageType_mid> FilterType;
-		typename FilterType::Pointer filter = FilterType::New();
+    }
 
-		//set paras
-		unsigned char outsideValue		=0;
-		unsigned char insideValue		=255;
-		filter->SetOutsideValue( outsideValue );
-		filter->SetInsideValue( insideValue );
-		
-		float sigmaFactor				=2;
-		unsigned int numberofIterations	=2;
-		filter->SetSigmaFactor( sigmaFactor );
-		filter->SetNumberOfIterations( numberofIterations );
-		
-		//------------------------------------------------------------------
-		//setup filter: cast datatype back to PixelType for output
-		typedef itk::RescaleIntensityImageFilter<ImageType_mid,ImageType_input> RescaleFilterType_output;
+  virtual void ComputeOneRegion()
+    {
 
-		typename RescaleFilterType_output::Pointer rescaler_32f_8u = RescaleFilterType_output::New();
-		rescaler_32f_8u->SetOutputMinimum(   0 );
-		rescaler_32f_8u->SetOutputMaximum( 255 );
+    this->m_Filter->SetInput( this->GetInput3DImage() );
 
-		//------------------------------------------------------------------
-		//setup filter: write processed image to disk
-		typedef itk::ImageFileWriter< ImageType_input >  WriterType;
-		typename WriterType::Pointer writer = WriterType::New();
-		writer->SetFileName("output.tif");
+    this->m_Filter->Update();
 
-		//------------------------------------------------------------------
-		//build pipeline
-		rescaler_8u_32f->SetInput(importFilter->GetOutput());
-		filter->SetInput(rescaler_8u_32f->GetOutput());
-		rescaler_32f_8u->SetInput(filter->GetOutput());
-		writer->SetInput(rescaler_32f_8u->GetOutput());
+    this->SetOutputImage( this->m_Filter->GetOutput() );
+    }
 
-		//------------------------------------------------------------------
-		//update the pixel value
-		if (menu_name == QObject::tr("ITK KappaSigmaThreshold ..."))
-		{
-			ITKKappaSigmaThresholdDialog d(p4DImage, parent);
 
-			if (d.exec() != QDialog::Accepted)
-			{
-				return;
-			}
-			else
-			{
-				try
-				{
-					writer->Update();
-				}
-				catch(itk::ExceptionObject &excp)
-				{
-					std::cerr<<excp<<std::endl;
-					return;
-				}
-			}
+private:
 
-		}
-		else
-		{
-			return;
-		}
-
-		//------------------------------------------------------------------
-		typedef itk::ImageRegionConstIterator<ImageType_input> IteratorType;
-		IteratorType it(rescaler_32f_8u->GetOutput(), rescaler_32f_8u->GetOutput()->GetRequestedRegion());
-		it.GoToBegin();
-
-		if(!globalSetting.b_plugin_dispResInNewWindow)
-		{
-			printf("display results in a new window\n");
-			//copy data back to V3D
-			while(!it.IsAtEnd())
-			{
-				*data1d=it.Get();
-				++it;
-				++data1d;
-			}
-
-			callback.setImageName(oldwin, callback.getImageName(oldwin)+"_new");
-			callback.updateImageWindow(oldwin);
-		}
-		else
-		{
-			printf("display results in current window\n");
-			long N = p4DImage->getTotalBytes();
-			unsigned char* newdata1d = new unsigned char[N];
-			Image4DSimple tmp;
-			tmp.setData(newdata1d, p4DImage->sz0,p4DImage->sz1,p4DImage->sz2,p4DImage->sz3, p4DImage->datatype);
-
-			//copy data back to the new image
-			while(!it.IsAtEnd())
-			{
-				*newdata1d=it.Get();
-				++it;
-				++newdata1d;
-			}
-
-			v3dhandle newwin = callback.newImageWindow();
-			callback.setImage(newwin, &tmp);
-			callback.setImageName(newwin, callback.getImageName(oldwin)+"_new");
-		    callback.updateImageWindow(newwin);
-		}
-	}
+    typename FilterType::Pointer   m_Filter;
 
 };
 
-#define EXECUTE( v3d_pixel_type, c_pixel_type ) \
+
+#define EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
   case v3d_pixel_type: \
     { \
-	ITKKappaSigmaThresholdSpecializaed< c_pixel_type > runner; \
-    runner.Execute(  menu_name, callback, parent ); \
+    PluginSpecialized< c_pixel_type > runner( &callback ); \
+    runner.Execute( menu_name, parent ); \
     break; \
-    } 
-
-#define EXECUTE_ALL_PIXEL_TYPES \
-	Image4DSimple *p4DImage = callback.getImage(curwin); \
-    if (! p4DImage) return; \
-    ImagePixelType pixelType = p4DImage->getDatatype(); \
-    switch( pixelType )  \
-      {  \
-      EXECUTE( V3D_UINT8, unsigned char );  \
-      EXECUTE( V3D_UINT16, unsigned short int );  \
-      EXECUTE( V3D_FLOAT32, float );  \
-      case V3D_UNKNOWN:  \
-        {  \
-        }  \
-      }  
-
-void ITKKappaSigmaThresholdPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
-{
-	v3dhandle curwin = callback.currentImageWindow();
-	if (!curwin)
-    {
-		v3d_msg(tr("You don't have any image open in the main window."));
-		return;
     }
 
-  EXECUTE_ALL_PIXEL_TYPES;
+
+void KappaSigmaThresholdPlugin::dofunc(const QString & func_name,
+    const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
+{
+  // empty by now
 }
+
+
+void KappaSigmaThresholdPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+{
+  if (menu_name == QObject::tr("about this plugin"))
+    {
+    QMessageBox::information(parent, "Version info", "ITK KappaSigmaThreshold 1.0 (2010-Jun-21): this plugin is developed by Sophie Chen.");
+    return;
+    }
+
+  v3dhandle curwin = callback.currentImageWindow();
+  if (!curwin)
+    {
+    v3d_msg(tr("You don't have any image open in the main window."));
+    return;
+    }
+
+  Image4DSimple *p4DImage = callback.getImage(curwin);
+  if (! p4DImage)
+    {
+    v3d_msg(tr("The input image is null."));
+    return;
+    }
+
+  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
+}
+

@@ -68,6 +68,26 @@ void V3DITKGenericDialog::AddDialogElement( const char * label, double  value, d
 }
 
 
+void V3DITKGenericDialog::AddDialogElement( const char * label, int  value, int minimum, int maximum )
+{
+  // IMPLEMENT ME
+}
+
+void V3DITKGenericDialog::AddDialogElement( const char * label, const char * value )
+{
+  // IMPLEMENT ME
+}
+
+void V3DITKGenericDialog::AddDialogElement( const char * label, bool value )
+{
+  // IMPLEMENT ME
+}
+
+void V3DITKGenericDialog::AddDialogElement( const char * label, QString stringOption, QStringList & listOfOptions )
+{
+  // IMPLEMENT ME
+}
+
 double V3DITKGenericDialog::GetValue( const char * labelText )
 {
   std::string labelIndex( labelText );

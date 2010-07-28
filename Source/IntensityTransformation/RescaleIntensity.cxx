@@ -46,10 +46,21 @@ public:
 
   virtual ~PluginSpecialized() {};
 
-  
+
   void Execute(const QString &menu_name, QWidget *parent)
     {
-    this->Compute(); 
+    V3DITKGenericDialog dialog("Sigmoid");
+
+    dialog.AddDialogElement("Output Minimum",1.0, 0.0, 255.0);
+    dialog.AddDialogElement("Output Maximum",255.0, 0.0, 255.0);
+
+    if( dialog.exec() == QDialog::Accepted )
+      {
+      this->m_Filter->SetOutputMinimum( dialog.GetValue("Output Minimum") );
+      this->m_Filter->SetOutputMaximum( dialog.GetValue("Output Maximum") );
+
+      this->Compute();
+      }
     }
 
   virtual void ComputeOneRegion()
@@ -61,18 +72,12 @@ public:
       {
       this->m_Filter->InPlaceOn();
       }
-    
+
     this->m_Filter->Update();
 
     this->SetOutputImage( this->m_Filter->GetOutput() );
     }
-  
-  virtual void SetupParameters()
-    {
-    // These values should actually be provided by the Qt Dialog...
-    this->m_Filter->SetOutputMaximum( 255.0 );
-    this->m_Filter->SetOutputMinimum(   0.0 );
-    }
+
 
 private:
 
@@ -87,9 +92,9 @@ private:
     PluginSpecialized< c_input_pixel_type, c_output_pixel_type > runner( &callback ); \
     runner.Execute( menu_name, parent ); \
     break; \
-    } 
+    }
 
- 
+
 void RescaleIntensityPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {

@@ -52,6 +52,10 @@ public:
   V3DITKGenericDialog( const char * name );
 
   void AddDialogElement( const char * label, double  value, double  minimum, double  maximum );
+  void AddDialogElement( const char * label, int  value, int minimum, int maximum );
+  void AddDialogElement( const char * label, const char * value );
+  void AddDialogElement( const char * label, bool value );
+  void AddDialogElement( const char * label, QString stringOption, QStringList & listOfOptions );
 
   double GetValue( const char * labelText );
 

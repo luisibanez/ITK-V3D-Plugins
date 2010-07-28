@@ -5,7 +5,6 @@
 
 #include "Sigmoid.h"
 #include "V3DITKFilterSingleImage.h"
-#include "V3DITKGenericDialog.h"
 
 // ITK Header Files
 #include "itkSigmoidImageFilter.h"

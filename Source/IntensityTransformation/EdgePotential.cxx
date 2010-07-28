@@ -50,10 +50,10 @@ public:
 
   virtual ~PluginSpecialized() {};
 
-  
+
   void Execute(const QString &menu_name, QWidget *parent)
     {
-    this->Compute(); 
+    this->Compute();
     }
 
   virtual void ComputeOneRegion()
@@ -66,12 +66,7 @@ public:
 
     this->SetOutputImage( this->m_EdgePotentialFilter->GetOutput() );
     }
-  
-  virtual void SetupParameters()
-    {
-    //
-    // These values should actually be provided by the Qt Dialog...
-    }
+
 
 private:
 
@@ -87,9 +82,9 @@ private:
     PluginSpecialized< c_pixel_type > runner( &callback ); \
     runner.Execute( menu_name, parent ); \
     break; \
-    } 
+    }
 
- 
+
 void EdgePotentialPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
@@ -119,6 +114,6 @@ void EdgePotentialPlugin::domenu(const QString & menu_name, V3DPluginCallback & 
     return;
     }
 
-  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES; 
+  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
 }
 
