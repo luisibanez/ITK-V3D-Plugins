@@ -1,5 +1,12 @@
-SET(V3DITK_Common_SRCS
+
+SET(QtITK_SRCS
   V3DITKPluginBaseSingleImage.cxx
+  V3DITKGenericDialog.cxx
   )
 
-ADD_LIBRARY(V3DITKCommon ${V3DITK_Common_SRCS})
+QT4_WRAP_CPP(QT_MOC_SRCS
+  V3DITKPluginBaseSingleImage.h
+  V3DITKGenericDialog.h
+  )
+
+ADD_LIBRARY(V3DITKCommon ${QtITK_SRCS} ${QT_MOC_SRCS})

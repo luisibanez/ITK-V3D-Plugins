@@ -20,6 +20,12 @@ void V3DITKPluginBaseSingleImage::SetPluginName( const char * name )
   this->m_PluginName = name;
 }
 
+QString V3DITKPluginBaseSingleImage::GetPluginName() const
+{
+  return QObject::tr( this->m_PluginName.c_str() );
+}
+
+
 QStringList V3DITKPluginBaseSingleImage::menulist() const
 {
     return QStringList() << QObject::tr( this->m_PluginName.c_str() )

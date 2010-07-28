@@ -31,7 +31,7 @@
       case V3D_UNKNOWN:  \
         {  \
         }  \
-      }  
+      }
 
 class V3DITKPluginBaseSingleImage : public QObject, public V3DPluginInterface
 {
@@ -43,6 +43,8 @@ public:
 	virtual ~V3DITKPluginBaseSingleImage();
 
 	void SetPluginName( const char * name );
+  QString GetPluginName() const;
+
   QStringList menulist() const;
 	QStringList funclist() const;
 
