@@ -16,7 +16,7 @@
       case V3D_UNKNOWN:  \
         {  \
         }  \
-      }  
+      }
 
 #define EXECUTE_PLUGIN_FOR_INTEGER_PIXEL_TYPES \
     ImagePixelType pixelType = p4DImage->getDatatype(); \
@@ -27,7 +27,7 @@
       case V3D_UNKNOWN:  \
         {  \
         }  \
-      }  
+      }
 
 
 #define EXECUTE_PLUGIN_FOR_ALL_INPUT_AND_OUTPUT_PIXEL_TYPES \
@@ -68,14 +68,14 @@
       case V3D_UNKNOWN:  \
         {  \
         }  \
-      }  
+      }
 
 
 template <typename TInputPixelType, typename TOutputPixelType>
 class V3DITKFilterSingleImage
 {
 public:
-  
+
   typedef TInputPixelType                   InputPixelType;
   typedef itk::Image< InputPixelType, 2 >   Input2DImageType;
   typedef itk::Image< InputPixelType, 3 >   Input3DImageType;
@@ -85,7 +85,7 @@ public:
   typedef itk::Image< OutputPixelType, 3 >  Output3DImageType;
 
 public:
-  
+
   V3DITKFilterSingleImage( V3DPluginCallback * callback );
   virtual ~V3DITKFilterSingleImage();
 
@@ -100,7 +100,6 @@ protected:
     V3DLONG x1, V3DLONG x2, V3DLONG y1, V3DLONG y2, V3DLONG z1, V3DLONG z2 );
 
   virtual void ComputeOneRegion() = 0;  //this needs to be implemented for new plugin code
-  virtual void SetupParameters() = 0;  //this needs to be implemented for new plugin code
   virtual void TransferOutput( V3D_Image3DBasic & outputImage ) const;
 
   const Input2DImageType * GetInput2DImage() const;
@@ -128,12 +127,12 @@ private:
   Image4DSimple *                           m_4DImage;
 
   InputPixelType *                          m_Data1D;
-      
+
   V3DLONG                                   m_NumberOfPixelsAlongX;
   V3DLONG                                   m_NumberOfPixelsAlongY;
   V3DLONG                                   m_NumberOfPixelsAlongZ;
   V3DLONG                                   m_NumberOfChannels;
- 
+
   typename Output2DImageType::Pointer       m_Output2DImage;
   typename Output3DImageType::Pointer       m_Output3DImage;
 

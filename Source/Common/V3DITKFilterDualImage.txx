@@ -49,7 +49,7 @@ void
 V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
 ::Execute(const QString &menu_name, QWidget *parent)
 {
-  this->Compute(); 
+  this->Compute();
 }
 
 
@@ -185,31 +185,31 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
   size[0] = x2 - x1;
   size[1] = y2 - y1;
   size[2] = z2 - z1;
-  
+
   typename Import3DFilterType::IndexType start;
   start[0] = x1;
   start[1] = y1;
   start[2] = z1;
-  
+
   typename Import3DFilterType::RegionType region;
   region.SetIndex( start );
   region.SetSize(  size  );
-  
+
   this->m_Impor3DFilter1->SetRegion( region );
-  
+
   region.SetSize( size );
-  
+
   typename Input3DImageType::PointType origin;
   origin.Fill( 0.0 );
-  
+
   this->m_Impor3DFilter1->SetOrigin( origin );
-  
-  
+
+
   typename Import3DFilterType::SpacingType spacing;
   spacing.Fill( 1.0 );
-  
+
   this->m_Impor3DFilter1->SetSpacing( spacing );
-  
+
   const unsigned int numberOfPixels = region.GetNumberOfPixels();
 
   const bool importImageFilterWillOwnTheBuffer = false;
@@ -220,7 +220,7 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
 
   this->m_Impor3DFilter1->Update();
 }
-      
+
 
 template <typename TInputPixelType, typename TOutputPixelType>
 bool
@@ -246,16 +246,16 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
   const V3DLONG y2 = this->m_NumberOfPixelsAlongY;
   const V3DLONG z2 = this->m_NumberOfPixelsAlongZ;
 
-  QList< V3D_Image3DBasic > inputImageList = 
+  QList< V3D_Image3DBasic > inputImageList =
     getChannelDataForProcessingFromGlobalSetting( this->m_4DImage, *(this->m_V3DPluginCallback) );
 
   QList< V3D_Image3DBasic > outputImageList;
 
   const unsigned int numberOfChannelsToProcess = inputImageList.size();
   if (numberOfChannelsToProcess<=0)
+    {
     return;
-
-  this->SetupParameters();
+    }
 
   for( unsigned int channel = 0; channel < numberOfChannelsToProcess; channel++ )
     {
@@ -275,7 +275,7 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
     }
 
   bool transferResult =  assembleProcessedChannels2Image4DClass( outputImageList, *(this->m_V3DPluginCallback) );
-    
+
   if( !transferResult )
     {
     v3d_msg(QObject::tr("Error while transfering output image."));
@@ -313,9 +313,9 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
   PixelContainer3DType * container = this->m_Output3DImage->GetPixelContainer();
 
   container->SetContainerManageMemory( false );
-  
+
   OutputPixelType * output1d = container->GetImportPointer();
-  
+
   outputImage.data1d = reinterpret_cast< unsigned char * >( output1d );
 
   typename Output3DImageType::RegionType region = this->m_Output3DImage->GetBufferedRegion();
@@ -327,7 +327,7 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
   outputImage.sz2 = size[2];
 
 
-  // 
+  //
   //  Set the pixel type id.
   //
   if( typeid(OutputPixelType) == typeid( unsigned char ) )

@@ -17,7 +17,7 @@
     PluginName##Specialized< c_pixel_type > runner( &callback ); \
     runner.Execute( menu_name, parent ); \
     break; \
-    } 
+    }
 
 #define EXECUTE_ALL_PIXEL_TYPES( PluginName ) \
     v3dhandle curwin = callback.currentImageWindow(); \

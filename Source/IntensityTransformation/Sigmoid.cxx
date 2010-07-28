@@ -82,12 +82,6 @@ public:
     this->SetOutputImage( this->m_Filter->GetOutput() );
     }
 
-  virtual void SetupParameters()
-    {
-    //
-    // These values should actually be provided by the Qt Dialog...
-    //
-    }
 
 private:
 

@@ -51,7 +51,6 @@ protected:
     V3DLONG x1, V3DLONG x2, V3DLONG y1, V3DLONG y2, V3DLONG z1, V3DLONG z2 );
 
   virtual void ComputeOneRegion() = 0;  //this needs to be implemented for new plugin code
-  virtual void SetupParameters() = 0;  //this needs to be implemented for new plugin code
   virtual void TransferOutput( V3D_Image3DBasic & outputImage ) const;
 
   const Input2DImageType * GetInput2DImage1() const;

@@ -5,6 +5,7 @@
 
 #include "BinaryThreshold.h"
 #include "V3DITKFilterSingleImage.h"
+#include "V3DITKGenericDialog.h"
 
 // ITK Header Files
 #include "itkBinaryThresholdImageFilter.h"
@@ -45,10 +46,24 @@ public:
 
   virtual ~PluginSpecialized() {};
 
-  
+
   void Execute(const QString &menu_name, QWidget *parent)
     {
-    this->Compute(); 
+    V3DITKGenericDialog dialog("Binary Threshold");
+
+    dialog.AddDialogElement("Lower",128.0, 0.0, 255.0);
+    dialog.AddDialogElement("Upper",255.0, 0.0, 255.0);
+
+    if( dialog.exec() == QDialog::Accepted )
+      {
+      this->m_Filter->SetUpperThreshold( dialog.GetValue("Upper") );
+      this->m_Filter->SetLowerThreshold( dialog.GetValue("Lower") );
+      this->m_Filter->SetInsideValue(255);
+      this->m_Filter->SetOutsideValue(0);
+
+      this->Compute();
+      }
+
     }
 
   virtual void ComputeOneRegion()
@@ -60,19 +75,12 @@ public:
       {
       this->m_Filter->InPlaceOn();
       }
-    
+
     this->m_Filter->Update();
 
     this->SetOutputImage( this->m_Filter->GetOutput() );
     }
-  
-  virtual void SetupParameters()
-    {
-    this->m_Filter->SetLowerThreshold(128);
-    this->m_Filter->SetUpperThreshold(255);
-    this->m_Filter->SetInsideValue(255);
-    this->m_Filter->SetOutsideValue(0);
-    }
+
 
 private:
 
@@ -87,9 +95,9 @@ private:
     PluginSpecialized< c_pixel_type > runner( &callback ); \
     runner.Execute( menu_name, parent ); \
     break; \
-    } 
+    }
 
- 
+
 void BinaryThresholdPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
@@ -119,6 +127,6 @@ void BinaryThresholdPlugin::domenu(const QString & menu_name, V3DPluginCallback 
     return;
     }
 
-  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES; 
+  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
 }
 

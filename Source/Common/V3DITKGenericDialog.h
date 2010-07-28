@@ -23,9 +23,9 @@ public:
 
     this->valueBox = new QDoubleSpinBox();
     this->valueBox->setObjectName( objectName );
-    this->valueBox->setValue( value );
     this->valueBox->setMinimum( minimum );
     this->valueBox->setMaximum( maximum );
+    this->valueBox->setValue( value );
     }
 
   ~V3DITKDialogElement()
