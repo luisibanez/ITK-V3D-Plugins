@@ -50,13 +50,27 @@ public:
     {
     V3DITKGenericDialog dialog("Threshold Labeler");
 
-    dialog.AddDialogElement("Thresholds",2.0, 0.0, 255.0);
-    dialog.AddDialogElement("Label Offset",4.0, 0.0, 255.0);
+    //
+    // This filter may require a smarter dialog
+    //
+    dialog.AddDialogElement("Threshold 1",32.0, 0.0, 255.0);
+    dialog.AddDialogElement("Threshold 2",64.0, 0.0, 255.0);
+    dialog.AddDialogElement("Threshold 3",128.0, 0.0, 255.0);
+    dialog.AddDialogElement("Threshold 4",256.0, 0.0, 255.0);
+    dialog.AddDialogElement("First Label",4.0, 0.0, 255.0);
 
     if( dialog.exec() == QDialog::Accepted )
       {
-      this->m_Filter->SetThresholds( dialog.GetValue("Thresholds") );
-      this->m_Filter->SetLabelOffset( dialog.GetValue("Label Offset") );
+      typedef typename FilterType::RealThresholdVector RealThresholdVectorType;
+
+      RealThresholdVectorType thresholdsVector;
+      thresholdsVector.push_back( dialog.GetValue("Threshold 1" ) );
+      thresholdsVector.push_back( dialog.GetValue("Threshold 2" ) );
+      thresholdsVector.push_back( dialog.GetValue("Threshold 3" ) );
+      thresholdsVector.push_back( dialog.GetValue("Threshold 4" ) );
+
+      this->m_Filter->SetRealThresholds( thresholdsVector );
+      this->m_Filter->SetLabelOffset( dialog.GetValue("First Label") );
 
       this->Compute();
       }
