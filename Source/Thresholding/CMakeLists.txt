@@ -7,3 +7,4 @@ CONFIGURE_V3D_PLUGIN(RobustAutomaticThreshold)
 
 CONFIGURE_V3D_PLUGIN(ThresholdLabeler)
 CONFIGURE_V3D_PLUGIN(BinaryThreshold)
+CONFIGURE_V3D_PLUGIN(DoubleThreshold)
