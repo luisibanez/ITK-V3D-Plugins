@@ -50,8 +50,8 @@ public:
     {
     V3DITKGenericDialog dialog("Binary Threshold");
 
-    dialog.AddDialogElement("Sigma Factor", 1.5, 0.1, 10.0);
-    dialog.AddDialogElement("Iterations", 5.0, 1.0, 100.0);
+    dialog.AddDialogElement("Sigma Factor", 5.5, 0.1, 10.0);
+    dialog.AddDialogElement("Iterations", 2.0, 1.0, 100.0);
 
     if( dialog.exec() == QDialog::Accepted )
       {
