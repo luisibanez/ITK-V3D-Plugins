@@ -1,4 +1,4 @@
-INCLUDE_DIRECTORIES( 
+INCLUDE_DIRECTORIES(
   Common
   V3DInterface
   )
@@ -18,3 +18,4 @@ ADD_SUBDIRECTORY(Classification)
 ADD_SUBDIRECTORY(Registration)
 ADD_SUBDIRECTORY(ImageObjects)
 ADD_SUBDIRECTORY(Watershed)
+ADD_SUBDIRECTORY(DistanceMaps)
