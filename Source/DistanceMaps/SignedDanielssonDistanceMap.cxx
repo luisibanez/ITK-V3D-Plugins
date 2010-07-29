@@ -52,14 +52,12 @@ public:
 
     dialog.AddDialogElement("InsideIsPositive",1.0, 0.0, 1.0); // This should be a boolean & checkbox
     dialog.AddDialogElement("UsePixelSpacing",1.0, 0.0, 1.0);  // This should be a boolean & checkbox
-    dialog.AddDialogElement("InputBackground",0.0, 0.0, 255.0);
 
     if( dialog.exec() == QDialog::Accepted )
       {
       this->m_Filter->SetSquaredDistance( false );
       this->m_Filter->SetInsideIsPositive( dialog.GetValue("InsideIsPositive") );
       this->m_Filter->SetUseImageSpacing( dialog.GetValue("UsePixelSpacing") );
-      this->m_Filter->SetBackgroundValue( dialog.GetValue("InputBackground") );
 
       this->Compute();
       }
