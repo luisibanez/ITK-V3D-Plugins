@@ -49,6 +49,8 @@ public:
   V3DITKGenericDialog();
   ~V3DITKGenericDialog();
 
+  explicit V3DITKGenericDialog( QWidget* iParent = 0 );
+
   V3DITKGenericDialog( const char * name );
 
   void AddDialogElement( const char * label, double  value, double  minimum, double  maximum );
@@ -74,6 +76,11 @@ public:
   typedef std::map< std::string, V3DITKDialogElement * >  ElementContainerType;
 
   ElementContainerType elementContainer;
+
+private:
+
+  Q_DISABLE_COPY(V3DITKGenericDialog);
+
 };
 
 #endif

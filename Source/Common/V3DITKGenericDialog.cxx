@@ -7,6 +7,11 @@ V3DITKGenericDialog::V3DITKGenericDialog()
 {
 }
 
+V3DITKGenericDialog::V3DITKGenericDialog( QWidget * )
+{
+}
+
+
 V3DITKGenericDialog::~V3DITKGenericDialog()
 {
   ElementContainerType::iterator eitr = this->elementContainer.begin();
