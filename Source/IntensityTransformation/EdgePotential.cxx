@@ -44,8 +44,11 @@ public:
 
   PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
-    this->m_EdgePotentialFilter = EdgePotentialFilterType::New();
     this->m_GradientFilter = GradientFilterType::New();
+    this->m_EdgePotentialFilter = EdgePotentialFilterType::New();
+
+    this->RegisterInternalFilter( this->m_GradientFilter, 0.8 );
+    this->RegisterInternalFilter( this->m_EdgePotentialFilter, 0.2 );
     }
 
   virtual ~PluginSpecialized() {};

@@ -40,6 +40,7 @@ public:
   PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
     this->m_Filter = FilterType::New();
+    this->RegisterInternalFilter( this->m_Filter, 1.0 );
     }
 
   virtual ~PluginSpecialized() {};
