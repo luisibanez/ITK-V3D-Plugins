@@ -40,6 +40,14 @@ V3DITKGenericDialog::V3DITKGenericDialog( const char * name )
 
 int V3DITKGenericDialog::exec()
 {
+  // remove existing children from the gridLayout
+  QLayoutItem *child;
+  while ((child = this->gridLayout->takeAt(0)) != 0) {
+     this->gridLayout->removeItem(child);
+     delete child->widget();
+     delete child;
+  }
+
   int row = 0;
 
   ElementContainerType::iterator eitr = this->elementContainer.begin();
