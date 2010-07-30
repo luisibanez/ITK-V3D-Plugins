@@ -2,6 +2,7 @@
 #define __V3DITKFilterSingleImage_TXX__
 
 #include "V3DITKFilterSingleImage.h"
+#include "V3DITKProgressDialog.h"
 
 
 template <typename TInputPixelType, typename TOutputPixelType>
@@ -12,6 +13,10 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 
   this->m_Impor2DFilter = Import2DFilterType::New();
   this->m_Impor3DFilter = Import3DFilterType::New();
+
+  this->m_ProcessObjectSurrogate = ProcessHelper::New();
+  this->m_ProgressAccumulator = ProgressAccumulatorType::New();
+  this->m_ProgressAccumulator->SetMiniPipelineFilter( this->m_ProcessObjectSurrogate );
 }
 
 
@@ -19,6 +24,42 @@ template <typename TInputPixelType, typename TOutputPixelType>
 V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 ::~V3DITKFilterSingleImage()
 {
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::SetPluginName( const char * name )
+{
+  this->m_PluginName = name;
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+QString
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::GetPluginName() const
+{
+  return QObject::tr( this->m_PluginName.c_str() );
+}
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::AddObserver( itk::Command * observer )
+{
+  this->m_ProgressAccumulator->ResetProgress();
+  this->m_ProcessObjectSurrogate->AddObserver( itk::ProgressEvent(), observer );
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
+::RegisterInternalFilter( GenericFilterType *filter, float weight )
+{
+  this->m_ProgressAccumulator->RegisterInternalFilter( filter, weight );
 }
 
 
@@ -144,6 +185,15 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
     getChannelDataForProcessingFromGlobalSetting( this->m_4DImage, *(this->m_V3DPluginCallback) );
 
   QList< V3D_Image3DBasic > outputImageList;
+
+  V3DITKProgressDialog progressDialog( this->GetPluginName().toStdString().c_str() );
+
+  this->AddObserver( progressDialog.GetCommand() );
+  progressDialog.ObserveFilter( this->m_ProcessObjectSurrogate );
+
+  // FIXME: We are still missing to connect the logic for "cancel" button that
+  // will trigger Abort in the ITK filters.
+  progressDialog.show();
 
   const unsigned int numberOfChannelsToProcess = inputImageList.size();
   if (numberOfChannelsToProcess<=0)

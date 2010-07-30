@@ -5,6 +5,7 @@
 #include "V3DITKGenericDialog.h"
 #include "itkImage.h"
 #include "itkImportImageFilter.h"
+#include "itkProgressAccumulator.h"
 
 
 #define EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES \
@@ -85,12 +86,24 @@ public:
   typedef itk::Image< OutputPixelType, 2 >  Output2DImageType;
   typedef itk::Image< OutputPixelType, 3 >  Output3DImageType;
 
+  typedef itk::ProgressAccumulator          ProgressAccumulatorType;
+  typedef ProgressAccumulatorType::GenericFilterType   GenericFilterType;
+
 public:
 
   V3DITKFilterSingleImage( V3DPluginCallback * callback );
   virtual ~V3DITKFilterSingleImage();
 
   void Execute(const QString &menu_name, QWidget *parent);
+
+	void SetPluginName( const char * name );
+  QString GetPluginName() const;
+
+  void AddObserver( itk::Command * observer );
+
+  void RegisterInternalFilter( GenericFilterType *filter, float weight );
+
+  ProgressAccumulatorType * GetProgressAccumulator();
 
 protected:
 
@@ -110,6 +123,7 @@ protected:
   void SetOutputImage( Output3DImageType * image );
 
   bool ShouldGenerateNewWindow() const;
+
 
 private:
 
@@ -137,6 +151,25 @@ private:
   typename Output2DImageType::Pointer       m_Output2DImage;
   typename Output3DImageType::Pointer       m_Output3DImage;
 
+  std::string    m_PluginName;
+
+  class ProcessHelper : public itk::ProcessObject
+    {
+    public:
+      typedef ProcessHelper                   Self;
+      typedef ProcessObject                   Superclass;
+      typedef itk::SmartPointer<Self>         Pointer;
+      typedef itk::SmartPointer<const Self>   ConstPointer;
+
+      itkTypeMacro(ProcessHelper,ProcessObject);
+      itkNewMacro(ProcessHelper);
+    protected:
+      ProcessHelper() {}
+      ~ProcessHelper() {}
+    };
+
+  ProgressAccumulatorType::Pointer          m_ProgressAccumulator;
+  typename ProcessHelper::Pointer           m_ProcessObjectSurrogate;
 };
 
 
