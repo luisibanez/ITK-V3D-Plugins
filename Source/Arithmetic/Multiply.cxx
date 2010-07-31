@@ -1,24 +1,24 @@
 
-#include "Add.h"
+#include "Multiply.h"
 #include "V3DITKFilterDualImage.h"
 
 // ITK Header Files
-#include "itkAddImageFilter.h"
+#include "itkMultiplyImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(Add, AddPlugin)
+Q_EXPORT_PLUGIN2(Multiply, MultiplyPlugin)
 
 
-QStringList AddPlugin::menulist() const
+QStringList MultiplyPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK Add")
+    return QStringList() << QObject::tr("ITK Multiply")
             << QObject::tr("about this plugin");
 }
 
-QStringList AddPlugin::funclist() const
+QStringList MultiplyPlugin::funclist() const
 {
     return QStringList();
 }
@@ -30,7 +30,7 @@ class PluginSpecialized : public V3DITKFilterDualImage< TPixelType, TPixelType >
   typedef V3DITKFilterDualImage< TPixelType, TPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
 
-  typedef itk::AddImageFilter< ImageType, ImageType > FilterType;
+  typedef itk::MultiplyImageFilter< ImageType, ImageType, ImageType > FilterType;
 
 public:
 
@@ -76,18 +76,18 @@ private:
     }
 
 
-void AddPlugin::dofunc(const QString & func_name,
+void MultiplyPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
   // empty by now
 }
 
 
-void AddPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+void MultiplyPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK Add 1.0 (2010-Jun-21): this plugin is developed by Luis Ibanez.");
+    QMessageBox::information(parent, "Version info", "ITK Multiply 1.0 (2010-Jul-31): this plugin is developed by Luis Ibanez.");
     return;
     }
 

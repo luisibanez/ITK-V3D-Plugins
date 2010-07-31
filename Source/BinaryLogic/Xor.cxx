@@ -1,24 +1,24 @@
 
-#include "Add.h"
+#include "Xor.h"
 #include "V3DITKFilterDualImage.h"
 
 // ITK Header Files
-#include "itkAddImageFilter.h"
+#include "itkXorImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(Add, AddPlugin)
+Q_EXPORT_PLUGIN2(Xor, XorPlugin)
 
 
-QStringList AddPlugin::menulist() const
+QStringList XorPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK Add")
+    return QStringList() << QObject::tr("ITK Xor")
             << QObject::tr("about this plugin");
 }
 
-QStringList AddPlugin::funclist() const
+QStringList XorPlugin::funclist() const
 {
     return QStringList();
 }
@@ -30,7 +30,7 @@ class PluginSpecialized : public V3DITKFilterDualImage< TPixelType, TPixelType >
   typedef V3DITKFilterDualImage< TPixelType, TPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
 
-  typedef itk::AddImageFilter< ImageType, ImageType > FilterType;
+  typedef itk::XorImageFilter< ImageType, ImageType > FilterType;
 
 public:
 
@@ -76,18 +76,18 @@ private:
     }
 
 
-void AddPlugin::dofunc(const QString & func_name,
+void XorPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
   // empty by now
 }
 
 
-void AddPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+void XorPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK Add 1.0 (2010-Jun-21): this plugin is developed by Luis Ibanez.");
+    QMessageBox::information(parent, "Version info", "ITK Xor 1.0 (2010-Jul-31): this plugin is developed by Luis Ibanez.");
     return;
     }
 
@@ -105,6 +105,6 @@ void AddPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, 
     return;
     }
 
-  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
+  EXECUTE_PLUGIN_FOR_INTEGER_PIXEL_TYPES;
 }
 

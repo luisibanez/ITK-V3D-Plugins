@@ -8,6 +8,7 @@ ADD_SUBDIRECTORY(V3DInterface)
 
 
 ADD_SUBDIRECTORY(Arithmetic)
+ADD_SUBDIRECTORY(BinaryLogic)
 ADD_SUBDIRECTORY(IntensityTransformation)
 ADD_SUBDIRECTORY(MathMorphology)
 ADD_SUBDIRECTORY(Smoothing)
