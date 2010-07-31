@@ -6,6 +6,7 @@
 #include "itkImage.h"
 #include "itkImportImageFilter.h"
 #include "itkProgressAccumulator.h"
+#include <QList>
 
 
 #define EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES \
@@ -97,6 +98,10 @@ public:
   void SetOutputImage( Output2DImageType * image );
   void SetOutputImage( Output3DImageType * image );
 
+  // Schedule images to be passed as return to v3d
+  virtual void AddOutputImageChannel( V3DLONG channelId );
+  virtual void ComposeOutputImage();
+
   void Execute(const QString &menu_name, QWidget *parent);
 
 	void SetPluginName( const char * name );
@@ -161,6 +166,8 @@ protected:
 
   ProgressAccumulatorType::Pointer          m_ProgressAccumulator;
   typename ProcessHelper::Pointer           m_ProcessObjectSurrogate;
+
+  QList< V3D_Image3DBasic >                 m_OutputImageList;
 };
 
 

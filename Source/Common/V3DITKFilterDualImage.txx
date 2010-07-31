@@ -149,14 +149,41 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
 template <typename TInputPixelType, typename TOutputPixelType>
 void
 V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
-::Compute()
+::ComputeSelectedChannel( V3DLONG channelToProcess )
 {
   this->Initialize();
 
   QList< V3D_Image3DBasic > inputImageList =
     getChannelDataForProcessingFromGlobalSetting( this->m_4DImage, *(this->m_V3DPluginCallback) );
 
-  QList< V3D_Image3DBasic > outputImageList;
+  const unsigned int numberOfChannelsToProcess = inputImageList.size();
+  if (numberOfChannelsToProcess!=1)
+    {
+    return;
+    }
+
+  const V3D_Image3DBasic inputImage = inputImageList.at(channelToProcess);
+
+  this->TransferInputImages( this->m_V3DPluginCallback );
+
+  this->ComputeOneRegion();
+
+  const V3DLONG defaultOutputChannelId = 0;
+  this->AddOutputImageChannel( defaultOutputChannelId );
+
+  this->ComposeOutputImage();
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
+::Compute()
+{
+  this->Initialize();
+
+  QList< V3D_Image3DBasic > inputImageList =
+    getChannelDataForProcessingFromGlobalSetting( this->m_4DImage, *(this->m_V3DPluginCallback) );
 
   const unsigned int numberOfChannelsToProcess = inputImageList.size();
   if (numberOfChannelsToProcess<=0)
@@ -172,22 +199,10 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
 
     this->ComputeOneRegion();
 
-    V3D_Image3DBasic outputImage;
-
-    outputImage.cid = inputImage.cid;
-
-    this->TransferOutput( outputImage );
-
-    outputImageList.append( outputImage );
+    this->AddOutputImageChannel( channel );
     }
 
-  bool transferResult =  assembleProcessedChannels2Image4DClass( outputImageList, *(this->m_V3DPluginCallback) );
-
-  if( !transferResult )
-    {
-    v3d_msg(QObject::tr("Error while transfering output image."));
-    }
-
+  this->ComposeOutputImage();
 }
 
 #endif

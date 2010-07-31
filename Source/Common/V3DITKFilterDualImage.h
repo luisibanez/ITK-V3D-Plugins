@@ -24,6 +24,7 @@ protected:
   virtual void TransferInputImages( V3DPluginCallback * callback );
 
   virtual void Compute();
+  virtual void ComputeSelectedChannel( V3DLONG channelToProcess );
 
   const Input2DImageType * GetInput2DImage1() const;
   const Input2DImageType * GetInput2DImage2() const;

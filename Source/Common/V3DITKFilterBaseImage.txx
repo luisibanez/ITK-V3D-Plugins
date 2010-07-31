@@ -42,6 +42,36 @@ V3DITKFilterBaseImage< TInputPixelType, TOutputPixelType >
 }
 
 
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterBaseImage< TInputPixelType, TOutputPixelType >
+::AddOutputImageChannel( V3DLONG channelId )
+{
+  V3D_Image3DBasic outputImage;
+
+  outputImage.cid = channelId;
+
+  this->TransferOutput( outputImage );
+
+  this->m_OutputImageList.append( outputImage );
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterBaseImage< TInputPixelType, TOutputPixelType >
+::ComposeOutputImage()
+{
+  bool transferResult =  assembleProcessedChannels2Image4DClass( this->m_OutputImageList, *(this->m_V3DPluginCallback) );
+
+  if( !transferResult )
+    {
+    v3d_msg(QObject::tr("Error while transfering output image."));
+    }
+}
+
+
+
 
 template <typename TInputPixelType, typename TOutputPixelType>
 void

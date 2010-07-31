@@ -129,22 +129,10 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 
     this->ComputeOneRegion();
 
-    V3D_Image3DBasic outputImage;
-
-    outputImage.cid = inputImage.cid;
-
-    this->TransferOutput( outputImage );
-
-    outputImageList.append( outputImage );
+    this->AddOutputImageChannel( channel );
     }
 
-  bool transferResult =  assembleProcessedChannels2Image4DClass( outputImageList, *(this->m_V3DPluginCallback) );
-
-  if( !transferResult )
-    {
-    v3d_msg(QObject::tr("Error while transfering output image."));
-    }
-
+  this->ComposeOutputImage();
 }
 
 #endif
