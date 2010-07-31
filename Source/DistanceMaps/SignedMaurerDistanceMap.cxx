@@ -41,6 +41,7 @@ public:
   PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
     this->m_Filter = FilterType::New();
+    this->RegisterInternalFilter( this->m_Filter, 1.0 );
     }
 
   virtual ~PluginSpecialized() {};
@@ -103,7 +104,7 @@ void SignedMaurerDistanceMapPlugin::domenu(const QString & menu_name, V3DPluginC
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK SignedMaurerDistanceMap 1.0 (2010-Jun-21): this plugin is developed by Luis Ibanez.");
+    QMessageBox::information(parent, "Version info", "ITK SignedMaurerDistanceMap 1.0 (2010-Jul-21): this plugin is developed by Luis Ibanez.");
     return;
     }
 
@@ -123,3 +124,4 @@ void SignedMaurerDistanceMapPlugin::domenu(const QString & menu_name, V3DPluginC
 
   EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
 }
+
