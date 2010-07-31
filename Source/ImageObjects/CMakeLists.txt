@@ -13,3 +13,4 @@ CONFIGURE_V3D_PLUGIN(LabelContour)
 
 CONFIGURE_V3D_PLUGIN(ShapeRelabel)
 CONFIGURE_V3D_PLUGIN(StatisticsRelabel)
+CONFIGURE_V3D_PLUGIN(LabelShapeStatistics)
