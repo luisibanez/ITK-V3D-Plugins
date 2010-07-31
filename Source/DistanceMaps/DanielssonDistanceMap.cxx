@@ -57,7 +57,6 @@ public:
     if( dialog.exec() == QDialog::Accepted )
       {
       this->m_Filter->SetSquaredDistance( false );
-      this->m_Filter->SetInsideIsPositive( dialog.GetValue("InsideIsPositive") );
       this->m_Filter->SetUseImageSpacing( dialog.GetValue("UsePixelSpacing") );
 
       this->Compute();
