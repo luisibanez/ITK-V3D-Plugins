@@ -10,6 +10,9 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
 {
   this->m_Impor2DFilter1 = Import2DFilterType::New();
   this->m_Impor2DFilter2 = Import2DFilterType::New();
+
+  this->m_Impor3DFilter1 = Import3DFilterType::New();
+  this->m_Impor3DFilter2 = Import3DFilterType::New();
 }
 
 
@@ -92,6 +95,7 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
     v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
     return;
   }
+
 
   //------------------------------------------------------------------
   //import images from V3D

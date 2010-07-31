@@ -49,7 +49,7 @@ public:
     DeformationFieldType>   RegistrationFilterType;
 
   typedef itk::WarpImageFilter<
-                          Input3DImageType, 
+                          Input3DImageType,
                           Input3DImageType,
                           DeformationFieldType  >     WarpFilterType;
 
@@ -58,7 +58,7 @@ public:
                                    double          >  InterpolatorType;
 
 
-  class CommandIterationUpdate : public itk::Command 
+  class CommandIterationUpdate : public itk::Command
   {
   public:
     typedef  CommandIterationUpdate   Self;
@@ -67,7 +67,7 @@ public:
     itkNewMacro( CommandIterationUpdate );
   protected:
     CommandIterationUpdate() {};
-    
+
   public:
 
     void Execute(itk::Object *caller, const itk::EventObject & event)
@@ -79,7 +79,7 @@ public:
       {
       static int iteration = 0;
 
-      const RegistrationFilterType * filter = 
+      const RegistrationFilterType * filter =
         dynamic_cast< const RegistrationFilterType * >( object );
       if( !(itk::IterationEvent().CheckEvent( &event )) )
         {
@@ -101,10 +101,9 @@ public:
 
   virtual ~PluginSpecialized() {};
 
-  
+
   void Execute(const QString &menu_name, V3DPluginCallback &callback, QWidget *parent)
     {
-    this->TransferInputImages( callback );
     this->Compute();
     }
 
@@ -160,7 +159,7 @@ public:
       std::cerr << excp << std::endl;
       return;
       }
-  
+
     std::cout << "Warping filter finished" << std::endl;
 
     this->SetOutputImage( this->m_Warper->GetOutput() );
@@ -190,7 +189,7 @@ private:
     PluginSpecialized< c_pixel_type > runner( &callback ); \
     runner.Execute(  menu_name, callback, parent ); \
     break; \
-    } 
+    }
 
 void ITKDemonsRegistrationPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {

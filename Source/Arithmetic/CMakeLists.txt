@@ -1,0 +1,4 @@
+
+SET(PLUGIN_GROUP_NAME "Arithmetic")
+
+CONFIGURE_V3D_PLUGIN(Add)
