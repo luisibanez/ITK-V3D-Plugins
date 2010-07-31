@@ -66,17 +66,6 @@ public:
       this->m_Filter->SetBackgroundValue( dialog.GetValue("BackgroundValue") );
 
       this->Compute();
-
-      LabelMapType * outputLabelMap = this->m_Filter->GetOutput();
-
-      unsigned long numberOfLabelMapObjects = outputLabelMap->GetNumberOfLabelObjects();
-
-      for( unsigned long labelCounter = 0; labelCounter < numberOfLabelMapObjects; labelCounter++ )
-        {
-        LabelObjectType * labelObject = outputLabelMap->GetNthLabelObject( labelCounter );
-        std::cout << labelCounter << " : " << labelObject->GetPhysicalSize() << std::endl;
-        }
-
       }
     }
 
@@ -85,7 +74,20 @@ public:
 
     this->m_Filter->SetInput( this->GetInput3DImage() );
 
+std::cout << "BEFORE CALLING UPDATE()" << std::endl;
     this->m_Filter->Update();
+std::cout << "AFTER CALLING UPDATE()" << std::endl;
+
+    LabelMapType * outputLabelMap = this->m_Filter->GetOutput();
+std::cout << "outputLabelMap = " << outputLabelMap << std::endl;
+    unsigned long numberOfLabelMapObjects = outputLabelMap->GetNumberOfLabelObjects();
+
+    for( unsigned long labelCounter = 0; labelCounter < numberOfLabelMapObjects; labelCounter++ )
+      {
+      LabelObjectType * labelObject = outputLabelMap->GetNthLabelObject( labelCounter );
+std::cout << labelCounter << " labelObject = " << labelObject << std::endl;
+      std::cout << labelCounter << " : " << labelObject->GetPhysicalSize() << std::endl;
+      }
 
     // this->SetOutputImage( this->m_Filter->GetOutput() );
     // FIXME: overload Compute() to make sure that we don't send any images back...
