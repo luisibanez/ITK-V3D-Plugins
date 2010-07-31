@@ -1,9 +1,8 @@
-#include <QtGui>
 
-#include <math.h>
-#include <stdlib.h>
+#include "V3DITKPluginDefaultHeader.h"
 
-#include "Add.h"
+V3DITKPLUGIN_DEFAULT_HEADER(Add);
+
 #include "V3DITKFilterDualImage.h"
 
 // ITK Header Files
