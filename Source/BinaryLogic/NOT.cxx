@@ -113,6 +113,6 @@ void NOTPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, 
     return;
     }
 
-  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
+  EXECUTE_PLUGIN_FOR_INTEGER_PIXEL_TYPES;
 }
 

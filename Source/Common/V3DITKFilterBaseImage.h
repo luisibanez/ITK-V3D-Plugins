@@ -27,6 +27,7 @@
       {  \
       EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( V3D_UINT8, unsigned char );  \
       EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( V3D_UINT16, unsigned short int );  \
+      case V3D_FLOAT32:  \
       case V3D_UNKNOWN:  \
         {  \
         }  \
