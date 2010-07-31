@@ -10,6 +10,7 @@ CONFIGURE_V3D_PLUGIN(BinaryShapeOpening)
 CONFIGURE_V3D_PLUGIN(BinaryStatisticsKeepNObjects)
 
 CONFIGURE_V3D_PLUGIN(LabelContour)
+CONFIGURE_V3D_PLUGIN(LabelOverlay)
 
 CONFIGURE_V3D_PLUGIN(ShapeRelabel)
 CONFIGURE_V3D_PLUGIN(StatisticsRelabel)
