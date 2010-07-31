@@ -2,21 +2,14 @@
 #define __V3DITKFilterSingleImage_TXX__
 
 #include "V3DITKFilterSingleImage.h"
-#include "V3DITKProgressDialog.h"
 
 
 template <typename TInputPixelType, typename TOutputPixelType>
 V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::V3DITKFilterSingleImage( V3DPluginCallback * callback )
+::V3DITKFilterSingleImage( V3DPluginCallback * callback ):Superclass(callback)
 {
-  this->m_V3DPluginCallback = callback;
-
   this->m_Impor2DFilter = Import2DFilterType::New();
   this->m_Impor3DFilter = Import3DFilterType::New();
-
-  this->m_ProcessObjectSurrogate = ProcessHelper::New();
-  this->m_ProgressAccumulator = ProgressAccumulatorType::New();
-  this->m_ProgressAccumulator->SetMiniPipelineFilter( this->m_ProcessObjectSurrogate );
 }
 
 
@@ -24,70 +17,6 @@ template <typename TInputPixelType, typename TOutputPixelType>
 V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 ::~V3DITKFilterSingleImage()
 {
-}
-
-
-template <typename TInputPixelType, typename TOutputPixelType>
-void
-V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::SetPluginName( const char * name )
-{
-  this->m_PluginName = name;
-}
-
-
-template <typename TInputPixelType, typename TOutputPixelType>
-QString
-V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::GetPluginName() const
-{
-  return QObject::tr( this->m_PluginName.c_str() );
-}
-
-template <typename TInputPixelType, typename TOutputPixelType>
-void
-V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::AddObserver( itk::Command * observer )
-{
-  this->m_ProgressAccumulator->ResetProgress();
-  this->m_ProcessObjectSurrogate->AddObserver( itk::ProgressEvent(), observer );
-}
-
-
-template <typename TInputPixelType, typename TOutputPixelType>
-void
-V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::RegisterInternalFilter( GenericFilterType *filter, float weight )
-{
-  this->m_ProgressAccumulator->RegisterInternalFilter( filter, weight );
-}
-
-
-template <typename TInputPixelType, typename TOutputPixelType>
-void
-V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::Initialize()
-{
-  this->m_CurrentWindow = this->m_V3DPluginCallback->currentImageWindow();
-
-  this->m_GlobalSetting = this->m_V3DPluginCallback->getGlobalSetting();
-
-  this->m_4DImage = this->m_V3DPluginCallback->getImage( this->m_CurrentWindow );
-
-  this->m_Data1D = reinterpret_cast< InputPixelType * >( this->m_4DImage->getRawData() );
-
-  this->m_NumberOfPixelsAlongX = this->m_4DImage->getXDim();
-  this->m_NumberOfPixelsAlongY = this->m_4DImage->getYDim();
-  this->m_NumberOfPixelsAlongZ = this->m_4DImage->getZDim();
-  this->m_NumberOfChannels =     this->m_4DImage->getCDim();
-}
-
-template <typename TInputPixelType, typename TOutputPixelType>
-void
-V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::Execute(const QString &menu_name, QWidget *parent)
-{
-  this->Compute();
 }
 
 
@@ -114,7 +43,7 @@ void
 V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 ::TransferInput( const V3D_Image3DBasic & inputImage, V3DLONG x1, V3DLONG x2, V3DLONG y1, V3DLONG y2, V3DLONG z1, V3DLONG z2 )
 {
-  const InputPixelType * constInputBuffer = reinterpret_cast<InputPixelType *>( inputImage.data1d );
+  const TInputPixelType * constInputBuffer = reinterpret_cast<TInputPixelType *>( inputImage.data1d );
 
   typename Import3DFilterType::SizeType size;
   size[0] = x2 - x1;
@@ -149,20 +78,11 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
 
   const bool importImageFilterWillOwnTheBuffer = false;
 
-  InputPixelType * inputBuffer = const_cast<InputPixelType *>( constInputBuffer );
+  TInputPixelType * inputBuffer = const_cast<TInputPixelType *>( constInputBuffer );
 
   this->m_Impor3DFilter->SetImportPointer( inputBuffer, numberOfPixels, importImageFilterWillOwnTheBuffer );
 
   this->m_Impor3DFilter->Update();
-}
-
-
-template <typename TInputPixelType, typename TOutputPixelType>
-bool
-V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::ShouldGenerateNewWindow() const
-{
-  return this->m_GlobalSetting.b_plugin_dispResInNewWindow;
 }
 
 
@@ -223,68 +143,6 @@ V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
   if( !transferResult )
     {
     v3d_msg(QObject::tr("Error while transfering output image."));
-    }
-
-}
-
-
-template <typename TInputPixelType, typename TOutputPixelType>
-void
-V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::SetOutputImage( Output3DImageType * image )
-{
-  this->m_Output3DImage = image;
-}
-
-
-template <typename TInputPixelType, typename TOutputPixelType>
-void
-V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::SetOutputImage( Output2DImageType * image )
-{
-  this->m_Output2DImage = image;
-}
-
-
-
-template <typename TInputPixelType, typename TOutputPixelType>
-void
-V3DITKFilterSingleImage< TInputPixelType, TOutputPixelType >
-::TransferOutput( V3D_Image3DBasic & outputImage ) const
-{
-  typedef typename Output3DImageType::PixelContainer  PixelContainer3DType;
-
-  PixelContainer3DType * container = this->m_Output3DImage->GetPixelContainer();
-
-  container->SetContainerManageMemory( false );
-
-  OutputPixelType * output1d = container->GetImportPointer();
-
-  outputImage.data1d = reinterpret_cast< unsigned char * >( output1d );
-
-  typename Output3DImageType::RegionType region = this->m_Output3DImage->GetBufferedRegion();
-
-  typename Output3DImageType::SizeType size = region.GetSize();
-
-  outputImage.sz0 = size[0];
-  outputImage.sz1 = size[1];
-  outputImage.sz2 = size[2];
-
-
-  //
-  //  Set the pixel type id.
-  //
-  if( typeid(OutputPixelType) == typeid( unsigned char ) )
-    {
-    outputImage.datatype = V3D_UINT8;
-    }
-  else if ( typeid(OutputPixelType) == typeid( unsigned short int ) )
-    {
-    outputImage.datatype = V3D_UINT16;
-    }
-  else if ( typeid(OutputPixelType) == typeid( float ) )
-    {
-    outputImage.datatype = V3D_FLOAT32;
     }
 
 }
