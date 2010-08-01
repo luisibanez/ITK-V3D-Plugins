@@ -19,7 +19,7 @@ Q_EXPORT_PLUGIN2(ConnectedComponents, ConnectComponentsPlugin)
 QStringList ConnectComponentsPlugin::menulist() const
 {
     return QStringList() << QObject::tr("Detect Connected Components")
-	<< QObject::tr("about this plugin");
+  << QObject::tr("about this plugin");
 }
 
 QStringList ConnectComponentsPlugin::funclist() const
@@ -31,55 +31,55 @@ QStringList ConnectComponentsPlugin::funclist() const
 template <typename TInPixelType, typename TOutputPixelType>
 class MySpecialized : public V3DITKFilterSingleImage< TInPixelType, TOutputPixelType >
 {
-	typedef V3DITKFilterSingleImage< TInPixelType, TOutputPixelType >   Superclass;
-	typedef typename Superclass::Input3DImageType               ImageType;
-	typedef typename Superclass::Output3DImageType              OutputImageType;
-	
-	typedef itk::ConnectedComponentImageFilter< ImageType, OutputImageType > FilterType;
-	
+  typedef V3DITKFilterSingleImage< TInPixelType, TOutputPixelType >   Superclass;
+  typedef typename Superclass::Input3DImageType               ImageType;
+  typedef typename Superclass::Output3DImageType              OutputImageType;
+
+  typedef itk::ConnectedComponentImageFilter< ImageType, OutputImageType > FilterType;
+
 public:
-	
-	MySpecialized( V3DPluginCallback * callback ): Superclass(callback)
+
+  MySpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
-		this->m_Filter = FilterType::New();
+    this->m_Filter = FilterType::New();
     }
-	
-	virtual ~MySpecialized() {};
-	
-	
-	void Execute(const QString &menu_name, QWidget *parent)
+
+  virtual ~MySpecialized() {};
+
+
+  void Execute(const QString &menu_name, QWidget *parent)
     {
-		this->Compute(); 
+    this->Compute();
     }
-	
-	virtual void ComputeOneRegion()
+
+  virtual void ComputeOneRegion()
     {
-		
-		this->m_Filter->SetInput( this->GetInput3DImage() );
-		
-		if( !this->ShouldGenerateNewWindow() )
-		{
-			//this->m_Filter->InPlaceOn();
-		}
-		
-		this->m_Filter->Update();
-		
-		this->SetOutputImage( this->m_Filter->GetOutput() );
+
+    this->m_Filter->SetInput( this->GetInput3DImage() );
+
+    if( !this->ShouldGenerateNewWindow() )
+    {
+      //this->m_Filter->InPlaceOn();
     }
-	
-	virtual void SetupParameters()
-  	{
-		//
-		// These values should actually be provided by the Qt Dialog...
-		//
-		this->m_Filter->SetFullyConnected( false );
-		this->m_Filter->SetBackgroundValue( 0 );
-	}
-	
+
+    this->m_Filter->Update();
+
+    this->SetOutputImage( this->m_Filter->GetOutput() );
+    }
+
+  virtual void SetupParameters()
+    {
+    //
+    // These values should actually be provided by the Qt Dialog...
+    //
+    this->m_Filter->SetFullyConnected( false );
+    this->m_Filter->SetBackgroundValue( 0 );
+  }
+
 private:
-	
+
     typename FilterType::Pointer   m_Filter;
-	
+
 };
 
 
@@ -89,38 +89,38 @@ case v3d_pixel_type: \
 MySpecialized< c_pixel_type, unsigned short int > runner( &callback ); \
 runner.Execute( menu_name, parent ); \
 break; \
-} 
+}
 
 
 void ConnectComponentsPlugin::dofunc(const QString & func_name,
-									 const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
+                   const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
-	// empty by now
+  // empty by now
 }
 
 
 void ConnectComponentsPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
-	if (menu_name == QObject::tr("about this plugin"))
+  if (menu_name == QObject::tr("about this plugin"))
     {
-		QMessageBox::information(parent, "Version info", "ITK Connnected Components 1.0 (2010-June-4): this plugin is developed by Hanchuan Peng.");
-		return;
+    QMessageBox::information(parent, "Version info", "ITK Connnected Components 1.0 (2010-June-4): this plugin is developed by Hanchuan Peng.");
+    return;
     }
-	
-	v3dhandle curwin = callback.currentImageWindow();
-	if (!curwin)
+
+  v3dhandle curwin = callback.currentImageWindow();
+  if (!curwin)
     {
-		v3d_msg(tr("You don't have any image open in the main window."));
-		return;
+    v3d_msg(tr("You don't have any image open in the main window."));
+    return;
     }
-	
-	Image4DSimple *p4DImage = callback.getImage(curwin);
-	if (! p4DImage)
+
+  Image4DSimple *p4DImage = callback.getImage(curwin);
+  if (! p4DImage)
     {
-		v3d_msg(tr("The input image is null."));
-		return;
+    v3d_msg(tr("The input image is null."));
+    return;
     }
-	
-	EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES; 
+
+  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
 }
 
