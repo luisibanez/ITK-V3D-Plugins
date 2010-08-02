@@ -123,66 +123,63 @@ public:
 
     // output names
     ofsAttributes << "Label" << separator << "Size" << separator << "PhysicalSize" << separator << "RegionElongation" << separator << "SizeRegionRatio"
-                  << separator << "Centroid" << separator << "RegionIndex" << separator << "RegionSize" << separator << "SizeOnBorder"
+                  << separator << "Centroid" << separator << "RegionIndex" << separator << "RegionSize" << separator << "SizeOnBorder" << separator
                   << "PhysicalSizeOnBorder" << separator << "FeretDiameter" << separator << "BinaryPrincipalMoments" << separator << "BinaryPrincipalAxes"
                   << separator << "BinaryElongation" << separator << "Perimeter" << separator << "Roundness"
                   << separator << "EquivalentRadius" << separator << "EquivalentPerimeter" << separator << "EquivalentEllipsoidSize" << separator << "BinaryFlatness\n";
 
     for( unsigned long labelCounter = 0; labelCounter < numberOfLabelMapObjects; labelCounter++ )
       {
-      LabelObjectType * labelObject = outputLabelMap->GetNthLabelObject( labelCounter );
+        LabelObjectType * labelObject = outputLabelMap->GetNthLabelObject( labelCounter );
 
-      ofsAttributes << (unsigned long int)labelObject->GetLabel();
-      ofsAttributes << separator << labelObject->GetSize();
-      ofsAttributes << separator << labelObject->GetPhysicalSize();
-      ofsAttributes << separator << labelObject->GetRegionElongation();
-      ofsAttributes << separator << labelObject->GetSizeRegionRatio();
-
-      
-      typename LabelObjectType::CentroidType centroid = labelObject->GetCentroid();
-      ofsAttributes << separator;
-      for(int i = 0; i < 3; i++)
-        ofsAttributes << centroid[i] << " ";
+        ofsAttributes << (unsigned long int)labelObject->GetLabel();
+        ofsAttributes << separator << labelObject->GetSize();
+        ofsAttributes << separator << labelObject->GetPhysicalSize();
+        ofsAttributes << separator << labelObject->GetRegionElongation();
+        ofsAttributes << separator << labelObject->GetSizeRegionRatio();
 
       
-      typename LabelObjectType::RegionType region = labelObject->GetRegion();
-      typename ImageType::IndexType indexType = region.GetIndex();
-      typename ImageType::SizeType sizeType = region.GetSize();
-      ofsAttributes << separator;
-      for(int i = 0; i < 3; i++)
-        ofsAttributes << indexType[i] << " ";
-      ofsAttributes << separator;
-      for(int i = 0; i < 3; i++)
-        ofsAttributes << sizeType[i] << " ";        
+        typename LabelObjectType::CentroidType centroid = labelObject->GetCentroid();
+        ofsAttributes << separator;
+        for(int i = 0; i < 3; i++)
+          ofsAttributes << centroid[i] << " ";
 
-      ofsAttributes << separator << labelObject->GetSizeOnBorder();
-      ofsAttributes << separator << labelObject->GetPhysicalSizeOnBorder();
-      ofsAttributes << separator << labelObject->GetFeretDiameter();
+      
+        typename LabelObjectType::RegionType region = labelObject->GetRegion();
+        typename ImageType::IndexType indexType = region.GetIndex();
+        typename ImageType::SizeType sizeType = region.GetSize();
+        ofsAttributes << separator;
+        for(int i = 0; i < 3; i++)
+          ofsAttributes << indexType[i] << " ";
+        ofsAttributes << separator;
+        for(int i = 0; i < 3; i++)
+          ofsAttributes << sizeType[i] << " ";        
 
-      typename LabelObjectType::VectorType vector = labelObject->GetBinaryPrincipalMoments();
-      ofsAttributes << separator;
-      for(int i = 0; i < 3; i++)
-        ofsAttributes << vector[i] << " ";
-      typename LabelObjectType::MatrixType matrix = labelObject->GetBinaryPrincipalAxes();
-      ofsAttributes << separator;
-      for(int i = 0; i < 3; i++)
-        for(int j = 0; j < 3; j++)
-        ofsAttributes << matrix[i][j] << " ";
-      ofsAttributes << separator << labelObject->GetBinaryElongation();
-      ofsAttributes << separator << labelObject->GetPerimeter();
-      ofsAttributes << separator << labelObject->GetRoundness();
-      ofsAttributes << separator << labelObject->GetEquivalentRadius();
-      ofsAttributes << separator << labelObject->GetEquivalentPerimeter();
-      ofsAttributes << separator << labelObject->GetEquivalentEllipsoidSize();
-      ofsAttributes << separator << labelObject->GetBinaryFlatness() << std::endl;
+        ofsAttributes << separator << labelObject->GetSizeOnBorder();
+        ofsAttributes << separator << labelObject->GetPhysicalSizeOnBorder();
+        ofsAttributes << separator << labelObject->GetFeretDiameter();
+
+        typename LabelObjectType::VectorType vector = labelObject->GetBinaryPrincipalMoments();
+        ofsAttributes << separator;
+        for(int i = 0; i < 3; i++)
+          ofsAttributes << vector[i] << " ";
+        typename LabelObjectType::MatrixType matrix = labelObject->GetBinaryPrincipalAxes();
+        ofsAttributes << separator;
+        for(int i = 0; i < 3; i++)
+          for(int j = 0; j < 3; j++)
+            ofsAttributes << matrix[i][j] << " ";
+        ofsAttributes << separator << labelObject->GetBinaryElongation();
+        ofsAttributes << separator << labelObject->GetPerimeter();
+        ofsAttributes << separator << labelObject->GetRoundness();
+        ofsAttributes << separator << labelObject->GetEquivalentRadius();
+        ofsAttributes << separator << labelObject->GetEquivalentPerimeter();
+        ofsAttributes << separator << labelObject->GetEquivalentEllipsoidSize();
+        ofsAttributes << separator << labelObject->GetBinaryFlatness() << std::endl;
       }
 
     ofsAttributes.close();
 
     v3d_msg(QObject::tr("A file named attributes.txt has been created\n"));
-
-    // this->SetOutputImage( this->m_Filter->GetOutput() );
-    // FIXME: overload Compute() to make sure that we don't send any images back...
     }
 
 
