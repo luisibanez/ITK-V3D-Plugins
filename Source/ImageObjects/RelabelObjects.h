@@ -1,29 +1,13 @@
 #ifndef __RelabelObjects_H__
 #define __RelabelObjects_H__
 
-
-#include <QtGui>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <v3d_interface.h>
+#include "V3DITKPluginDefaultHeader.h"
 
 class RelabelObjectsPlugin : public QObject, public V3DPluginInterface
 {
-    Q_OBJECT
-    Q_INTERFACES(V3DPluginInterface)
-
-public:
-	RelabelObjectsPlugin() {}
-    QStringList menulist() const;
-	QStringList funclist() const;
-
-	void domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent);
-
-	virtual void dofunc(const QString & func_name,
-			const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent);
-
+  Q_OBJECT
+  Q_INTERFACES(V3DPluginInterface)
+  V3DITKPLUGIN_DEFAULT_CLASS_DECLARATION_BODY(RelabelObjects);
 };
 
 #endif
