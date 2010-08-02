@@ -3,26 +3,26 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "ApproximateSignedDistanceMap.h"
+#include "DanielssonDistanceMap.h"
 #include "V3DITKFilterSingleImage.h"
 
 // ITK Header Files
-#include "itkApproximateSignedDistanceMapImageFilter.h"
+#include "itkDanielssonDistanceMapImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(ApproximateSignedDistanceMap, ApproximateSignedDistanceMapPlugin)
+Q_EXPORT_PLUGIN2(DanielssonDistanceMap, DanielssonDistanceMapPlugin)
 
 
-QStringList ApproximateSignedDistanceMapPlugin::menulist() const
+QStringList DanielssonDistanceMapPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK ApproximateSignedDistanceMap")
+    return QStringList() << QObject::tr("ITK DanielssonDistanceMap")
             << QObject::tr("about this plugin");
 }
 
-QStringList ApproximateSignedDistanceMapPlugin::funclist() const
+QStringList DanielssonDistanceMapPlugin::funclist() const
 {
     return QStringList();
 }
@@ -34,7 +34,7 @@ class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType
   typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
 
-  typedef itk::ApproximateSignedDistanceMapImageFilter< ImageType, ImageType > FilterType;
+  typedef itk::DanielssonDistanceMapImageFilter< ImageType, ImageType > FilterType;
 
 public:
 
@@ -49,15 +49,15 @@ public:
 
   void Execute(const QString &menu_name, QWidget *parent)
     {
-    V3DITKGenericDialog dialog("ApproximateSignedDistanceMap");
+    V3DITKGenericDialog dialog("DanielssonDistanceMap");
 
-    dialog.AddDialogElement("InsideValue",255.0, 0.0, 255.0);
-    dialog.AddDialogElement("OutsideValue",0.0, 0.0, 255.0);
+    dialog.AddDialogElement("InsideIsPositive",1.0, 0.0, 1.0); // This should be a boolean & checkbox
+    dialog.AddDialogElement("UsePixelSpacing",1.0, 0.0, 1.0);  // This should be a boolean & checkbox
 
     if( dialog.exec() == QDialog::Accepted )
       {
-      this->m_Filter->SetInsideValue( dialog.GetValue("InsideValue") );
-      this->m_Filter->SetOutsideValue( dialog.GetValue("OutsideValue") );
+      this->m_Filter->SetSquaredDistance( false );
+      this->m_Filter->SetUseImageSpacing( dialog.GetValue("UsePixelSpacing") );
 
       this->Compute();
       }
@@ -90,18 +90,18 @@ private:
     }
 
 
-void ApproximateSignedDistanceMapPlugin::dofunc(const QString & func_name,
+void DanielssonDistanceMapPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
   // empty by now
 }
 
 
-void ApproximateSignedDistanceMapPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+void DanielssonDistanceMapPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK ApproximateSignedDistanceMap 1.0 (2010-Jul-21): this plugin is developed by Luis Ibanez.");
+    QMessageBox::information(parent, "Version info", "ITK DanielssonDistanceMap 1.0 (2010-Jul-21): this plugin is developed by Luis Ibanez.");
     return;
     }
 

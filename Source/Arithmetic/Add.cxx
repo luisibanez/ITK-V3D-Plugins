@@ -1,8 +1,5 @@
 
-#include "V3DITKPluginDefaultHeader.h"
-
-V3DITKPLUGIN_DEFAULT_HEADER(Add);
-
+#include "Add.h"
 #include "V3DITKFilterDualImage.h"
 
 // ITK Header Files

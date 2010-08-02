@@ -1,40 +1,36 @@
-#include <QtGui>
 
-#include <math.h>
-#include <stdlib.h>
-
-#include "ApproximateSignedDistanceMap.h"
-#include "V3DITKFilterSingleImage.h"
+#include "And.h"
+#include "V3DITKFilterDualImage.h"
 
 // ITK Header Files
-#include "itkApproximateSignedDistanceMapImageFilter.h"
+#include "itkAndImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(ApproximateSignedDistanceMap, ApproximateSignedDistanceMapPlugin)
+Q_EXPORT_PLUGIN2(And, AndPlugin)
 
 
-QStringList ApproximateSignedDistanceMapPlugin::menulist() const
+QStringList AndPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK ApproximateSignedDistanceMap")
+    return QStringList() << QObject::tr("ITK And")
             << QObject::tr("about this plugin");
 }
 
-QStringList ApproximateSignedDistanceMapPlugin::funclist() const
+QStringList AndPlugin::funclist() const
 {
     return QStringList();
 }
 
 
 template <typename TPixelType>
-class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType >
+class PluginSpecialized : public V3DITKFilterDualImage< TPixelType, TPixelType >
 {
-  typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
+  typedef V3DITKFilterDualImage< TPixelType, TPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
 
-  typedef itk::ApproximateSignedDistanceMapImageFilter< ImageType, ImageType > FilterType;
+  typedef itk::AndImageFilter< ImageType, ImageType > FilterType;
 
 public:
 
@@ -49,24 +45,14 @@ public:
 
   void Execute(const QString &menu_name, QWidget *parent)
     {
-    V3DITKGenericDialog dialog("ApproximateSignedDistanceMap");
-
-    dialog.AddDialogElement("InsideValue",255.0, 0.0, 255.0);
-    dialog.AddDialogElement("OutsideValue",0.0, 0.0, 255.0);
-
-    if( dialog.exec() == QDialog::Accepted )
-      {
-      this->m_Filter->SetInsideValue( dialog.GetValue("InsideValue") );
-      this->m_Filter->SetOutsideValue( dialog.GetValue("OutsideValue") );
-
-      this->Compute();
-      }
+    this->Compute();
     }
 
   virtual void ComputeOneRegion()
     {
 
-    this->m_Filter->SetInput( this->GetInput3DImage() );
+    this->m_Filter->SetInput1( this->GetInput3DImage1() );
+    this->m_Filter->SetInput2( this->GetInput3DImage2() );
 
     this->m_Filter->Update();
 
@@ -90,18 +76,18 @@ private:
     }
 
 
-void ApproximateSignedDistanceMapPlugin::dofunc(const QString & func_name,
+void AndPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
   // empty by now
 }
 
 
-void ApproximateSignedDistanceMapPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+void AndPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK ApproximateSignedDistanceMap 1.0 (2010-Jul-21): this plugin is developed by Luis Ibanez.");
+    QMessageBox::information(parent, "Version info", "ITK And 1.0 (2010-Jul-31): this plugin is developed by Luis Ibanez.");
     return;
     }
 
@@ -119,6 +105,6 @@ void ApproximateSignedDistanceMapPlugin::domenu(const QString & menu_name, V3DPl
     return;
     }
 
-  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
+  EXECUTE_PLUGIN_FOR_INTEGER_PIXEL_TYPES;
 }
 

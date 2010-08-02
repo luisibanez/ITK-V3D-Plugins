@@ -1,40 +1,36 @@
-#include <QtGui>
 
-#include <math.h>
-#include <stdlib.h>
-
-#include "NOT.h"
-#include "V3DITKFilterSingleImage.h"
+#include "Or.h"
+#include "V3DITKFilterDualImage.h"
 
 // ITK Header Files
-#include "itkNotImageFilter.h"
+#include "itkOrImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(NOT, NOTPlugin)
+Q_EXPORT_PLUGIN2(Or, OrPlugin)
 
 
-QStringList NOTPlugin::menulist() const
+QStringList OrPlugin::menulist() const
 {
-    return QStringList() << QObject::tr("ITK NOT")
+    return QStringList() << QObject::tr("ITK Or")
             << QObject::tr("about this plugin");
 }
 
-QStringList NOTPlugin::funclist() const
+QStringList OrPlugin::funclist() const
 {
     return QStringList();
 }
 
 
 template <typename TPixelType>
-class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType >
+class PluginSpecialized : public V3DITKFilterDualImage< TPixelType, TPixelType >
 {
-  typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
+  typedef V3DITKFilterDualImage< TPixelType, TPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
 
-  typedef itk::NotImageFilter< ImageType, ImageType > FilterType;
+  typedef itk::OrImageFilter< ImageType, ImageType > FilterType;
 
 public:
 
@@ -55,12 +51,8 @@ public:
   virtual void ComputeOneRegion()
     {
 
-    this->m_Filter->SetInput( this->GetInput3DImage() );
-
-    if( !this->ShouldGenerateNewWindow() )
-      {
-      this->m_Filter->InPlaceOn();
-      }
+    this->m_Filter->SetInput1( this->GetInput3DImage1() );
+    this->m_Filter->SetInput2( this->GetInput3DImage2() );
 
     this->m_Filter->Update();
 
@@ -84,18 +76,18 @@ private:
     }
 
 
-void NOTPlugin::dofunc(const QString & func_name,
+void OrPlugin::dofunc(const QString & func_name,
     const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
   // empty by now
 }
 
 
-void NOTPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+void OrPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
-    QMessageBox::information(parent, "Version info", "ITK NOT 1.0 (2010-May-12): this plugin is developed by Sophie Chen.");
+    QMessageBox::information(parent, "Version info", "ITK Or 1.0 (2010-Jul-31): this plugin is developed by Luis Ibanez.");
     return;
     }
 
@@ -113,6 +105,6 @@ void NOTPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, 
     return;
     }
 
-  EXECUTE_PLUGIN_FOR_ALL_PIXEL_TYPES;
+  EXECUTE_PLUGIN_FOR_INTEGER_PIXEL_TYPES;
 }
 
