@@ -13,23 +13,23 @@
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
-Q_EXPORT_PLUGIN2(ConnectedComponents, ConnectComponentsPlugin)
+Q_EXPORT_PLUGIN2(ConnectedComponents, ConnectedComponentsPlugin)
 
 
-QStringList ConnectComponentsPlugin::menulist() const
+QStringList ConnectedComponentsPlugin::menulist() const
 {
     return QStringList() << QObject::tr("Detect Connected Components")
   << QObject::tr("about this plugin");
 }
 
-QStringList ConnectComponentsPlugin::funclist() const
+QStringList ConnectedComponentsPlugin::funclist() const
 {
     return QStringList();
 }
 
 
 template <typename TInPixelType, typename TOutputPixelType>
-class MySpecialized : public V3DITKFilterSingleImage< TInPixelType, TOutputPixelType >
+class PluginSpecialized : public V3DITKFilterSingleImage< TInPixelType, TOutputPixelType >
 {
   typedef V3DITKFilterSingleImage< TInPixelType, TOutputPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
@@ -39,17 +39,30 @@ class MySpecialized : public V3DITKFilterSingleImage< TInPixelType, TOutputPixel
 
 public:
 
-  MySpecialized( V3DPluginCallback * callback ): Superclass(callback)
+  PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
     this->m_Filter = FilterType::New();
+    this->RegisterInternalFilter( this->m_Filter, 1.0 );
     }
 
-  virtual ~MySpecialized() {};
+  virtual ~PluginSpecialized() {};
 
 
   void Execute(const QString &menu_name, QWidget *parent)
     {
-    this->Compute();
+    V3DITKGenericDialog dialog("Connected Components");
+
+    dialog.AddDialogElement("FullyConnected",0.0, 0.0, 1.0); // This should be a boolean
+    dialog.AddDialogElement("BackgroundValue",0.0, 0.0, 255.0);
+
+    if( dialog.exec() == QDialog::Accepted )
+      {
+      this->m_Filter->SetFullyConnected( (int)dialog.GetValue("FullyConnected") ); // This should be a boolean
+      this->m_Filter->SetBackgroundValue( dialog.GetValue("BackgroundValue") );
+
+      this->Compute();
+      }
+
     }
 
   virtual void ComputeOneRegion()
@@ -57,24 +70,11 @@ public:
 
     this->m_Filter->SetInput( this->GetInput3DImage() );
 
-    if( !this->ShouldGenerateNewWindow() )
-    {
-      //this->m_Filter->InPlaceOn();
-    }
-
     this->m_Filter->Update();
 
     this->SetOutputImage( this->m_Filter->GetOutput() );
     }
 
-  virtual void SetupParameters()
-    {
-    //
-    // These values should actually be provided by the Qt Dialog...
-    //
-    this->m_Filter->SetFullyConnected( false );
-    this->m_Filter->SetBackgroundValue( 0 );
-  }
 
 private:
 
@@ -84,22 +84,22 @@ private:
 
 
 #define EXECUTE_PLUGIN_FOR_ONE_IMAGE_TYPE( v3d_pixel_type, c_pixel_type ) \
-case v3d_pixel_type: \
-{ \
-MySpecialized< c_pixel_type, unsigned short int > runner( &callback ); \
-runner.Execute( menu_name, parent ); \
-break; \
-}
+  case v3d_pixel_type: \
+    { \
+    PluginSpecialized< c_pixel_type, unsigned short int > runner( &callback ); \
+    runner.Execute( menu_name, parent ); \
+    break; \
+    }
 
 
-void ConnectComponentsPlugin::dofunc(const QString & func_name,
-                   const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
+void ConnectedComponentsPlugin::dofunc(const QString & func_name,
+    const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent)
 {
   // empty by now
 }
 
 
-void ConnectComponentsPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
+void ConnectedComponentsPlugin::domenu(const QString & menu_name, V3DPluginCallback & callback, QWidget * parent)
 {
   if (menu_name == QObject::tr("about this plugin"))
     {
