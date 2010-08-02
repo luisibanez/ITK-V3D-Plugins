@@ -17,8 +17,6 @@
 #include "itkCastImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
-#include "itkImageFileWriter.h"
-
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
 // The value of PluginName should correspond to the TARGET specified in the
 // plugin's project file.
@@ -162,15 +160,6 @@ public:
     this->SetOutputImage(vectorFilterRed->GetOutput());
     this->AddOutputImageChannel( 0 );
 
-   {
-      printf("Writing overlay image\n");
-      typedef itk::ImageFileWriter< OutputImageType > WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName("overlay_red.tif");
-      writer->SetInput( vectorFilterRed->GetOutput() );
-      writer->Update();
-    }
-
     //green channel
     vectorFilterGreen->SetInput( this->m_Filter->GetOutput() );
     vectorFilterGreen->SetIndex( 1 );
@@ -187,15 +176,6 @@ public:
     this->SetOutputImage(vectorFilterGreen->GetOutput());
     this->AddOutputImageChannel( 1 );
 
-   {
-      printf("Writing overlay image\n");
-      typedef itk::ImageFileWriter< OutputImageType > WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName("overlay_green.tif");
-      writer->SetInput( vectorFilterGreen->GetOutput() );
-      writer->Update();
-    }
-
     // blue channel
     vectorFilterBlue->SetInput( this->m_Filter->GetOutput() );
     vectorFilterBlue->SetIndex( 2 );
@@ -211,15 +191,6 @@ public:
 
     this->SetOutputImage(vectorFilterBlue->GetOutput());
     this->AddOutputImageChannel( 2 );
-
-   {
-      printf("Writing overlay image\n");
-      typedef itk::ImageFileWriter< OutputImageType > WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName("overlay_blue.tif");
-      writer->SetInput( vectorFilterBlue->GetOutput() );
-      writer->Update();
-    }
 
     //this->SetOutputImage(this->m_Filter->GetOutput());
   }
