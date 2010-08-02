@@ -1,3 +1,7 @@
+/* LabelOverlayPlugin.cxx
+ * 2010-07-30: Plugin created by Aurelien Lucchi
+ */
+
 #include <QtGui>
 
 #include <math.h>
@@ -139,6 +143,7 @@ public:
     typename VectorFilterType::Pointer vectorFilterGreen = VectorFilterType::New();
     typename VectorFilterType::Pointer vectorFilterBlue = VectorFilterType::New();
 
+
     // red channel
     vectorFilterRed->SetInput( this->m_Filter->GetOutput() );
     vectorFilterRed->SetIndex( 0 );
@@ -154,7 +159,6 @@ public:
 
     this->SetOutputImage(vectorFilterRed->GetOutput());
     this->AddOutputImageChannel( 0 );
-
 
     //green channel
     vectorFilterGreen->SetInput( this->m_Filter->GetOutput() );
@@ -187,7 +191,6 @@ public:
 
     this->SetOutputImage(vectorFilterBlue->GetOutput());
     this->AddOutputImageChannel( 2 );
-
 
     //this->SetOutputImage(this->m_Filter->GetOutput());
   }
