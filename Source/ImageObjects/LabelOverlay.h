@@ -1,3 +1,7 @@
+/* LabelOverlayPlugin.h
+ * 2010-07-30: Plugin created by Aurelien Lucchi
+ */
+
 #ifndef __LabelOverlay_H__
 #define __LabelOverlay_H__
 
