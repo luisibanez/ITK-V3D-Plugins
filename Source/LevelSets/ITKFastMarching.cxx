@@ -8,6 +8,7 @@
 
 // ITK Header Files
 #include "itkFastMarchingImageFilter.h"
+#include "itkThresholdImageFilter.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
@@ -29,19 +30,25 @@ QStringList FastMarchingPlugin::funclist() const
 
 
 template <typename TPixelType>
-class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, TPixelType >
+class PluginSpecialized : public V3DITKFilterSingleImage< TPixelType, float >
 {
-  typedef V3DITKFilterSingleImage< TPixelType, TPixelType >   Superclass;
-  typedef typename Superclass::Input3DImageType               ImageType;
+  typedef V3DITKFilterSingleImage< TPixelType, float >        Superclass;
+  typedef typename Superclass::Input3DImageType               InputImageType;
+  typedef typename Superclass::Output3DImageType              OutputImageType;
+  typedef OutputImageType                                     LevelSetImageType;
+  typedef InputImageType                                      SpeedImageType;
 
-  typedef itk::FastMarchingImageFilter< ImageType, ImageType > FilterType;
+  typedef itk::FastMarchingImageFilter< LevelSetImageType, SpeedImageType > FilterType;
+  typedef itk::ThresholdImageFilter< LevelSetImageType > ThresholdFilterType;
 
 public:
 
   PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
     this->m_Filter = FilterType::New();
-    this->RegisterInternalFilter( this->m_Filter, 1.0 );
+    this->m_ThresholdFilter = ThresholdFilterType::New();
+    this->RegisterInternalFilter( this->m_Filter, 0.9 );
+    this->RegisterInternalFilter( this->m_ThresholdFilter, 0.1 );
     }
 
   virtual ~PluginSpecialized() {};
@@ -51,6 +58,7 @@ public:
     {
     V3DITKGenericDialog dialog("FastMarching");
 
+    dialog.AddDialogElement("SpeedScale",255.0, 0.0, 256.0);
     dialog.AddDialogElement("StoppingTime",50.0, 0.0, 10000.0);
 
     const double stoppingTime = dialog.GetValue("StoppingTime");
@@ -63,6 +71,10 @@ public:
       }
 
     this->m_Filter->SetStoppingValue( stoppingTime );
+    this->m_Filter->SetNormalizationFactor( dialog.GetValue("SpeedScale") );
+
+    this->m_ThresholdFilter->ThresholdAbove( stoppingTime );
+    this->m_ThresholdFilter->SetOutsideValue( stoppingTime );
 
     typedef typename FilterType::NodeContainer  NodeContainer;
     typedef typename FilterType::NodeType       NodeType;
@@ -85,7 +97,6 @@ public:
       return;
       }
 
-    typedef itk::Image< TPixelType, 3 > OutputImageType; // FIXME
     typename OutputImageType::IndexType  seedPosition;
 
     for(unsigned int i = 0;  i < numberOfSeedPoints; i++ )
@@ -109,16 +120,18 @@ public:
     {
 
     this->m_Filter->SetInput( this->GetInput3DImage() );
+    this->m_ThresholdFilter->SetInput( m_Filter->GetOutput() );
 
-    this->m_Filter->Update();
+    this->m_ThresholdFilter->Update();
 
-    this->SetOutputImage( this->m_Filter->GetOutput() );
+    this->SetOutputImage( this->m_ThresholdFilter->GetOutput() );
     }
 
 
 private:
 
-    typename FilterType::Pointer   m_Filter;
+    typename FilterType::Pointer            m_Filter;
+    typename ThresholdFilterType::Pointer   m_ThresholdFilter;
 
 };
 
