@@ -25,7 +25,8 @@ Q_EXPORT_PLUGIN2(LabelOverlay, LabelOverlayPlugin)
 
 QStringList LabelOverlayPlugin::menulist() const
 {
-  return QStringList() << QObject::tr("ITK LabelOverlayImageFilter")
+  return QStringList() << QObject::tr("ITK LabelOverlayImageFilter palette")
+                       << QObject::tr("ITK LabelOverlayImageFilter single color")
                        << QObject::tr("about this plugin");
 }
 
@@ -66,28 +67,34 @@ public:
   virtual ~MySpecialized() {};
 	
 	
-  void Execute(const QString &menu_name, QWidget *parent)
+  void Execute(const QString &menu_name, QWidget *parent, bool useSingleColor)
   {
     V3DITKGenericDialog dialog("Label overlay");
 
     dialog.AddDialogElement("Background value",0.0, 0.0, 255.0);
     dialog.AddDialogElement("Opacity",0.5, 0.0, 1.0);
-    dialog.AddDialogElement("Red",255.0, 0.0, 255.0);
-    dialog.AddDialogElement("Green",0.0, 0.0, 255.0);
-    dialog.AddDialogElement("Blue",0.0, 0.0, 255.0);
 
+    if(useSingleColor)
+      {
+        dialog.AddDialogElement("Red",255.0, 0.0, 255.0);
+        dialog.AddDialogElement("Green",0.0, 0.0, 255.0);
+        dialog.AddDialogElement("Blue",0.0, 0.0, 255.0);
+      }
 
     if( dialog.exec() == QDialog::Accepted )
       {
         this->m_Filter->SetBackgroundValue(dialog.GetValue("Background value"));
         this->m_Filter->SetOpacity(dialog.GetValue("Opacity"));
 
-        int red = dialog.GetValue("Red");
-        int green = dialog.GetValue("Green");
-        int blue = dialog.GetValue("Blue");
-        for(int i =0; i < 255; i++)
+        if(useSingleColor)
           {
-            this->m_Filter->AddColor(red, green, blue);
+            int red = dialog.GetValue("Red");
+            int green = dialog.GetValue("Green");
+            int blue = dialog.GetValue("Blue");
+            for(int i =0; i < 255; i++)
+              {
+                this->m_Filter->AddColor(red, green, blue);
+              }
           }
 
         this->Compute();
@@ -201,16 +208,7 @@ public:
 
     this->SetOutputImage(vectorFilterBlue->GetOutput());
     this->AddOutputImageChannel( 2 );
-
-    //this->SetOutputImage(this->m_Filter->GetOutput());
-  }
-	
-  virtual void SetupParameters()
-  {
-    //
-    // These values should actually be provided by the Qt Dialog...
-    // just search the respective .h file for the itkSetMacro for parameters
-  }
+  }       
 	
 private:
 	
@@ -223,7 +221,7 @@ private:
   case v3d_pixel_type:                                                  \
   {                                                                     \
     MySpecialized< c_pixel_type, c_pixel_type > runner( &callback );    \
-    runner.Execute( menu_name, parent );                                \
+    runner.Execute( menu_name, parent, useSingleColor );                               \
     break;                                                              \
   } 
 
@@ -242,7 +240,12 @@ void LabelOverlayPlugin::domenu(const QString & menu_name, V3DPluginCallback & c
       QMessageBox::information(parent, "Version info", "ITK LabelOverlay 1.0 (2010-July-15): this plugin is developed by Sophie Chen.");
       return;
     }
-	
+  
+  if (menu_name == QObject::tr("ITK LabelOverlayImageFilter palette"))
+    useSingleColor = false;
+  else
+    useSingleColor = true;
+
   v3dhandle curwin = callback.currentImageWindow();
   if (!curwin)
     {
