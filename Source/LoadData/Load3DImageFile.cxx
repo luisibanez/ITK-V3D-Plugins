@@ -8,6 +8,13 @@
 
 // ITK Header Files
 #include "itkImageFileReader.h"
+#include "itkImageSeriesReader.h"
+
+#include "itkGDCMImageIO.h"
+#include "itkGDCMSeriesFileNames.h"
+#include "itkImageSeriesReader.h"
+#include "itkMetaDataDictionary.h"
+#include "itkMetaDataObject.h"
 
 
 // Q_EXPORT_PLUGIN2 ( PluginName, ClassName )
@@ -19,6 +26,7 @@ Q_EXPORT_PLUGIN2(Load3DImageFile, Load3DImageFilePlugin)
 QStringList Load3DImageFilePlugin::menulist() const
 {
     return QStringList() << QObject::tr("ITK Load3DImageFile")
+            << QObject::tr("ITK Load DICOM Series")
             << QObject::tr("about this plugin");
 }
 
@@ -34,40 +42,124 @@ class PluginSpecialized : public V3DITKFilterNullImage< TPixelType, TPixelType >
   typedef V3DITKFilterNullImage< TPixelType, TPixelType >   Superclass;
   typedef typename Superclass::Input3DImageType               ImageType;
 
-  typedef itk::ImageFileReader< ImageType > FilterType;
+  typedef itk::ImageFileReader< ImageType >   FileReaderType;
+  typedef itk::ImageSeriesReader< ImageType > SeriesReaderType;
 
 public:
 
   PluginSpecialized( V3DPluginCallback * callback ): Superclass(callback)
     {
-    this->m_Filter = FilterType::New();
-    this->RegisterInternalFilter( this->m_Filter, 1.0 );
+    this->m_FileReader = FileReaderType::New();
+    this->m_SeriesReader = SeriesReaderType::New();
+
+    //
+    //  They run independently, so each one is scaled to 100%.
+    //
+    this->RegisterInternalFilter( this->m_FileReader, 1.0 );
+    this->RegisterInternalFilter( this->m_SeriesReader, 1.0 );
+
+    this->m_InputIsDICOM = false;
     }
 
   virtual ~PluginSpecialized() {};
 
 
-  void Execute(const QString &menu_name, QWidget *parent, const std::string & inputFileName )
+  void Execute(const QString &menu_name, QWidget *parent, const std::string & inputFileName, bool isDicom )
     {
-    this->m_Filter->SetFileName( inputFileName );
-    std::cout << "Execute( " << inputFileName << ") " << std::endl;
+    this->m_InputIsDICOM = isDicom;
+    this->m_FileName = inputFileName;
+
     this->Compute();
     }
 
+
   virtual void ComputeOneRegion()
     {
-    std::cout << "ComputeOneRegion() " << std::endl;
-    this->m_Filter->Update();
-
-    std::cout << "SetOutputImage() " << std::endl;
-    this->SetOutputImage( this->m_Filter->GetOutput() );
+    if ( this->m_InputIsDICOM )
+      {
+      this->ReadDICOMSeries3DImage();
+      }
+    else
+      {
+      this->ReadSingle3DImage();
+      }
     }
 
 
+  virtual void ReadSingle3DImage()
+    {
+    this->m_FileReader->SetFileName( this->m_FileName );
+    this->m_FileReader->Update();
+    this->SetOutputImage( this->m_FileReader->GetOutput() );
+    }
+
+  virtual void ReadDICOMSeries3DImage()
+    {
+    itk::GDCMImageIO::Pointer imageIO = itk::GDCMImageIO::New();
+
+    imageIO->SetFileName( this->m_FileName );
+
+    try
+      {
+      imageIO->ReadImageInformation();
+      }
+    catch( itk::ExceptionObject & excp )
+      {
+      std::cerr << "Could not read: " << this->m_FileName << std::endl;
+      std::cerr << excp << std::endl;
+      return;
+      }
+    catch( std::exception & excp )
+      {
+      std::cerr << "Could not read: " << this->m_FileName << std::endl;
+      std::cerr << excp.what() << std::endl;
+      return;
+      }
+
+    itk::MetaDataDictionary & dict = imageIO->GetMetaDataDictionary();
+
+    std::string  tagkey = "0020|000e";
+    std::string seriesIdentifier;
+
+    if( ! itk::ExposeMetaData<std::string>(dict,tagkey, seriesIdentifier ) )
+      {
+      std::cerr << "Series UID not found: " << std::endl;
+      return;
+      }
+
+    typedef itk::GDCMSeriesFileNames NamesGeneratorType;
+    NamesGeneratorType::Pointer nameGenerator = NamesGeneratorType::New();
+
+    std::string directory = itksys::SystemTools::GetFilenamePath( this->m_FileName );
+
+    std::cout << "DICOM Directory = " << directory << std::endl;
+
+    nameGenerator->SetInputDirectory( directory );
+
+    nameGenerator->SetUseSeriesDetails( true );
+    nameGenerator->AddSeriesRestriction("0008|0021" );
+
+    typedef std::vector< std::string >   FileNamesContainerType;
+
+    std::cout << "Series Identifier = " << seriesIdentifier << std::endl;
+
+    FileNamesContainerType fileNames =
+      nameGenerator->GetFileNames( seriesIdentifier );
+
+    this->m_SeriesReader->SetFileNames( fileNames );
+
+    this->m_SeriesReader->Update();
+
+    this->SetOutputImage( this->m_SeriesReader->GetOutput() );
+    }
+
 private:
 
-    typename FilterType::Pointer   m_Filter;
+    typename FileReaderType::Pointer      m_FileReader;
+    typename SeriesReaderType::Pointer    m_SeriesReader;
 
+    std::string                           m_FileName;
+    bool                                  m_InputIsDICOM;
 };
 
 
@@ -75,7 +167,7 @@ private:
   case itk_io_pixel_type: \
     { \
     PluginSpecialized< c_pixel_type > runner( &callback ); \
-    runner.Execute( menu_name, parent, inputFileName ); \
+    runner.Execute( menu_name, parent, inputFileName, isDicom ); \
     break; \
     }
 
@@ -100,14 +192,15 @@ void Load3DImageFilePlugin::domenu(const QString & menu_name, V3DPluginCallback 
   fileDialog.setViewMode( QFileDialog::Detail );
 
   QStringList filters;
-  filters << "Image files (*.hdr)"
-          << "Video files (*.mhd)"
-          << "Video files (*.mha)"
-          << "Video files (*.vtk)"
-          << "Video files (*.nii)"
-          << "Video files (*.nii.gz)"
-          << "Video files (*.nrrd)"
-          << "Video files (*.tif*)";
+  filters << "Analyze (*.hdr)"
+          << "MetaImage (*.mhd)"
+          << "MetaImage (*.mha)"
+          << "VTK Image (*.vtk)"
+          << "Nifti Image (*.nii)"
+          << "Nifti Compressed (*.nii.gz)"
+          << "Nrrd (*.nrrd)"
+          << "TIFF (*.tif*)"
+          << "ALL (*)";
 
   fileDialog.setFilters( filters );
   fileDialog.setLabelText( QFileDialog::LookIn,"Select Input");
@@ -135,7 +228,12 @@ void Load3DImageFilePlugin::domenu(const QString & menu_name, V3DPluginCallback 
     return;
     }
 
-  std::cout << "Input file name = " << inputFileName << std::endl;
+  bool isDicom = false;
+
+  if (menu_name == QObject::tr("ITK Load DICOM Series"))
+    {
+    isDicom = true;
+    }
 
   // Now that we found the appropriate ImageIO class,
   // ask it to read the meta data from the image file.
@@ -143,8 +241,6 @@ void Load3DImageFilePlugin::domenu(const QString & menu_name, V3DPluginCallback 
   imageIO->ReadImageInformation();
 
   ScalarPixelType pixelType = imageIO->GetComponentType();
-
-  std::cout << "pixelType = " << pixelType << std::endl;
 
   switch( pixelType )
     {
