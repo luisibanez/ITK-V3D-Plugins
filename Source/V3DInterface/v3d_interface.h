@@ -57,6 +57,9 @@ public:
 	virtual Image4DSimple * getImage(v3dhandle image_window) = 0;
 	virtual bool setImage(v3dhandle image_window, Image4DSimple * image) = 0;
 
+	//a special debug function. don't use this if you don't know how to use. by PHC, 100731
+	virtual bool setImageTest(v3dhandle image_window, Image4DSimple * image, unsigned char *a) = 0;
+
 	virtual LandmarkList  getLandmark(v3dhandle image_window) = 0;
 	virtual bool setLandmark(v3dhandle image_window, LandmarkList & landmark_list) = 0;
 
