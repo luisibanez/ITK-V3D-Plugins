@@ -47,9 +47,18 @@ public:
 	virtual ~MySpecialized() {};
 	
 	
-	void Execute(const QString &menu_name, QWidget *parent)
+  void Execute(const QString &menu_name, QWidget *parent)
     {
-		this->Compute(); 
+      V3DITKGenericDialog dialog("Label contour");
+
+      dialog.AddDialogElement("Background value",0.0, 0.0, 255.0);
+
+      if( dialog.exec() == QDialog::Accepted )
+        {
+          this->m_Filter->SetBackgroundValue(dialog.GetValue("Background value"));
+          this->m_Filter->SetFullyConnected( true );
+          this->Compute();
+        }
     }
 	
 	virtual void ComputeOneRegion()
@@ -62,16 +71,10 @@ public:
 		}
 		
 		this->m_Filter->Update();
+
+                this->SetOutputImage( this->m_Filter->GetOutput() );
+
     }
-	
-	virtual void SetupParameters()
-  	{
-		//
-		// These values should actually be provided by the Qt Dialog...
-		// just search the respective .h file for the itkSetMacro for parameters
-    this->m_Filter->SetBackgroundValue( 255555 );
-    this->m_Filter->SetFullyConnected( true );		
-	}
 	
 private:
 	

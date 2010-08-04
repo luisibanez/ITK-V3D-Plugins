@@ -71,12 +71,24 @@ public:
     V3DITKGenericDialog dialog("Label overlay");
 
     dialog.AddDialogElement("Background value",0.0, 0.0, 255.0);
-    dialog.AddDialogElement("Opacity",0.0, 0.0, 255.0);
+    dialog.AddDialogElement("Opacity",0.5, 0.0, 1.0);
+    dialog.AddDialogElement("Red",255.0, 0.0, 255.0);
+    dialog.AddDialogElement("Green",0.0, 0.0, 255.0);
+    dialog.AddDialogElement("Blue",0.0, 0.0, 255.0);
+
 
     if( dialog.exec() == QDialog::Accepted )
       {
         this->m_Filter->SetBackgroundValue(dialog.GetValue("Background value"));
         this->m_Filter->SetOpacity(dialog.GetValue("Opacity"));
+
+        int red = dialog.GetValue("Red");
+        int green = dialog.GetValue("Green");
+        int blue = dialog.GetValue("Blue");
+        for(int i =0; i < 255; i++)
+          {
+            this->m_Filter->AddColor(red, green, blue);
+          }
 
         this->Compute();
         this->ComposeOutputImage();
@@ -126,9 +138,7 @@ public:
     catch(itk::ExceptionObject& e)
       {
         std::cout << e;
-      }       
-
-    this->m_CastFilter->GetOutput()->Print(std::cout);
+      }
 
     try
       {
