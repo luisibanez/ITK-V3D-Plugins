@@ -28,6 +28,8 @@ public:
 	virtual void dofunc(const QString & func_name,
 			const V3DPluginArgList & input, V3DPluginArgList & output, QWidget * parent);
 
+ private:
+        bool useSingleColor;
 };
 
 #endif
