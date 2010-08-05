@@ -3,6 +3,7 @@
 
 #include <v3d_interface.h>
 #include "V3DITKGenericDialog.h"
+#include "V3DITKImageSelectionDialog.h"
 #include "itkImage.h"
 #include "itkImportImageFilter.h"
 #include "itkProgressAccumulator.h"
@@ -103,6 +104,14 @@ public:
   virtual void AddOutputImageChannel( V3DLONG channelId );
   virtual void ComposeOutputImage();
 
+  // Add an image label to the list of images to prompt the user for.
+  void AddImageSelectionLabel( const char * imageLabel );
+
+  // Set the title of the dialog that prompts the user for input image names.
+  void SetImageSelectionDialogTitle( const char * imageLabel );
+
+  Image4DSimple * GetInputImageFromIndex( unsigned int imageIndex );
+
   void Execute(const QString &menu_name, QWidget *parent);
 
 	void SetPluginName( const char * name );
@@ -169,6 +178,8 @@ protected:
   typename ProcessHelper::Pointer           m_ProcessObjectSurrogate;
 
   QList< V3D_Image3DBasic >                 m_OutputImageList;
+
+  V3DITKImageSelectionDialog                m_ImageSelectionDialog;
 };
 
 

@@ -3,9 +3,11 @@
 
 #include <QtGui>
 #include <QtGui/QLabel>
-#include <QtGui/QDoubleSpinBox>
+#include <QtGui/QComboBox>
 #include <QtGui/QDialog>
 #include "v3d_interface.h"
+#include "basic_4dimage.h"
+#include <vector>
 
 
 class V3DITKFileDialogElement
@@ -21,6 +23,9 @@ public:
     this->nameLabel = new QLabel();
     this->nameLabel->setObjectName( labelObjectName );
     this->nameLabel->setText(QApplication::translate("MainWindow", label, 0, QApplication::UnicodeUTF8));
+
+    this->comboBox = new QComboBox();
+    this->comboBox->setObjectName( objectName );
     }
 
   ~V3DITKFileDialogElement()
@@ -30,6 +35,7 @@ public:
 
 public:
   QLabel * nameLabel;
+  QComboBox * comboBox;
 };
 
 
@@ -42,9 +48,15 @@ public:
   V3DITKImageSelectionDialog();
   ~V3DITKImageSelectionDialog();
 
-  explicit V3DITKImageSelectionDialog( QWidget* iParent = 0);
+  explicit V3DITKImageSelectionDialog( QWidget* iParent );
 
-  V3DITKImageSelectionDialog( const char * windowTitle, V3DPluginCallback * pluginCallback );
+  void SetWindowTitle( const char * windowTitle );
+
+  void SetCallback( V3DPluginCallback * pluginCallback );
+
+  void AddImageSelectionLabel( const char * imageLabel );
+
+  Image4DSimple * GetImageFromIndex( unsigned int imageIndex );
 
   int exec();
 
@@ -59,7 +71,7 @@ public:
   QPushButton * ok;
   QPushButton * cancel;
 
-  typedef std::map< std::string, V3DITKFileDialogElement * >  ElementContainerType;
+  typedef std::vector< V3DITKFileDialogElement * >  ElementContainerType;
 
   ElementContainerType elementContainer;
 
@@ -71,6 +83,13 @@ private:
 
   Q_DISABLE_COPY(V3DITKImageSelectionDialog);
 
+  typedef std::vector< std::string >  ImageLabeListType;
+
+  ImageLabeListType  imageLabelList;
+
+  typedef std::vector< Image4DSimple * > SelectedImagesListType;
+
+  SelectedImagesListType  listOfSelectedImages;
 };
 
 #endif

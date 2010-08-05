@@ -14,6 +14,8 @@ V3DITKFilterBaseImage< TInputPixelType, TOutputPixelType >
   this->m_ProcessObjectSurrogate = ProcessHelper::New();
   this->m_ProgressAccumulator = ProgressAccumulatorType::New();
   this->m_ProgressAccumulator->SetMiniPipelineFilter( this->m_ProcessObjectSurrogate );
+
+  this->m_ImageSelectionDialog.SetCallback( this->m_V3DPluginCallback );
 }
 
 
@@ -136,6 +138,33 @@ V3DITKFilterBaseImage< TInputPixelType, TOutputPixelType >
 ::Execute(const QString &menu_name, QWidget *parent)
 {
   this->Compute();
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterBaseImage< TInputPixelType, TOutputPixelType >
+::AddImageSelectionLabel( const char * imageLabel )
+{
+  this->m_ImageSelectionDialog.AddImageSelectionLabel( imageLabel );
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+void
+V3DITKFilterBaseImage< TInputPixelType, TOutputPixelType >
+::SetImageSelectionDialogTitle( const char * imageLabel )
+{
+  this->m_ImageSelectionDialog.SetWindowTitle( imageLabel );
+}
+
+
+template <typename TInputPixelType, typename TOutputPixelType>
+Image4DSimple *
+V3DITKFilterBaseImage< TInputPixelType, TOutputPixelType >
+::GetInputImageFromIndex( unsigned int imageIndex )
+{
+  return this->m_ImageSelectionDialog.GetImageFromIndex( imageIndex );
 }
 
 
