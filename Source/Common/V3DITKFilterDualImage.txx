@@ -68,18 +68,23 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
   v3dhandleList wndlist = callback->getImageWindowList();
   if(wndlist.size()<2)
     {
-    v3d_msg(QObject::tr("Registration need at least two images!"));
+    v3d_msg(QObject::tr("This plugin needs at least two images!"));
     return;
     }
 
-  Image4DSimple* p4DImage_fix = callback->getImage(wndlist[0]);
-  Image4DSimple* p4DImage_mov = callback->getImage(wndlist[1]);
+  if( this->m_ImageSelectionDialog.exec() != QDialog::Accepted )
+    {
+    return;
+    }
+
+  Image4DSimple* p4DImage_1 = this->GetInputImageFromIndex( 0 );
+  Image4DSimple* p4DImage_2 = this->GetInputImageFromIndex( 1 );
 
 #ifdef CHECK_FOR_IMAGES_TO_HAVE_SAME_SIZE
-  if(p4DImage_fix->getXDim()!=p4DImage_mov->getXDim() ||
-     p4DImage_fix->getYDim()!=p4DImage_mov->getYDim() ||
-     p4DImage_fix->getZDim()!=p4DImage_mov->getZDim() ||
-     p4DImage_fix->getCDim()!=p4DImage_mov->getCDim())
+  if(p4DImage_1->getXDim()!=p4DImage_2->getXDim() ||
+     p4DImage_1->getYDim()!=p4DImage_2->getYDim() ||
+     p4DImage_1->getZDim()!=p4DImage_2->getZDim() ||
+     p4DImage_1->getCDim()!=p4DImage_2->getCDim())
   {
     v3d_msg(QObject::tr("Two input images have different size!"));
     return;
@@ -90,7 +95,7 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
   //get global setting
   V3D_GlobalSetting globalSetting = callback->getGlobalSetting();
     int channelToFilter = globalSetting.iChannel_for_plugin;
-    if( channelToFilter >= p4DImage_fix->getCDim())
+    if( channelToFilter >= p4DImage_1->getCDim())
   {
     v3d_msg(QObject::tr("You are selecting a channel that doesn't exist in this image."));
     return;
@@ -106,9 +111,9 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
   start.Fill(0);
 
   typename Import3DFilterType::SizeType size;
-  size[0] = p4DImage_fix->getXDim();
-  size[1] = p4DImage_fix->getYDim();
-  size[2] = p4DImage_fix->getZDim();
+  size[0] = p4DImage_1->getXDim();
+  size[1] = p4DImage_1->getYDim();
+  size[2] = p4DImage_1->getZDim();
 
   region.SetIndex(start);
   region.SetSize(size);
@@ -131,14 +136,14 @@ V3DITKFilterDualImage< TInputPixelType, TOutputPixelType >
   this->m_Impor3DFilter2->SetSpacing(spacing);
 
   //set import image pointer
-  TInputPixelType * data1d_fix = reinterpret_cast< TInputPixelType * > (p4DImage_fix->getRawData());
-  TInputPixelType * data1d_mov = reinterpret_cast< TInputPixelType * > (p4DImage_mov->getRawData());
+  TInputPixelType * data1d_1 = reinterpret_cast< TInputPixelType * > (p4DImage_1->getRawData());
+  TInputPixelType * data1d_2 = reinterpret_cast< TInputPixelType * > (p4DImage_2->getRawData());
 
-  unsigned long int numberOfPixels = p4DImage_fix->getTotalBytes();
+  unsigned long int numberOfPixels = p4DImage_1->getTotalBytes();
   const bool importImageFilterWillOwnTheBuffer = false;
 
-  this->m_Impor3DFilter1->SetImportPointer(data1d_fix, numberOfPixels,importImageFilterWillOwnTheBuffer);
-  this->m_Impor3DFilter2->SetImportPointer(data1d_mov, numberOfPixels,importImageFilterWillOwnTheBuffer);
+  this->m_Impor3DFilter1->SetImportPointer(data1d_1, numberOfPixels,importImageFilterWillOwnTheBuffer);
+  this->m_Impor3DFilter2->SetImportPointer(data1d_2, numberOfPixels,importImageFilterWillOwnTheBuffer);
 
   this->m_Impor3DFilter1->Update();
   this->m_Impor3DFilter2->Update();

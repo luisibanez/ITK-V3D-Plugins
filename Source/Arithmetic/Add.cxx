@@ -45,6 +45,10 @@ public:
 
   void Execute(const QString &menu_name, QWidget *parent)
     {
+    this->SetImageSelectionDialogTitle("Add Input Images");
+    this->AddImageSelectionLabel("Image 1");
+    this->AddImageSelectionLabel("Image 2");
+
     this->Compute();
     }
 
